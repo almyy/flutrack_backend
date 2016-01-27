@@ -1,6 +1,7 @@
 import csv
 import requests
-from pprint import pprint
+import xml.dom.minidom
+
 
 
 
@@ -60,7 +61,7 @@ def sort_per_destination(list_input):
 
 #def get_airport_info(airport_code):
 
-def __main__():
+def organise_files():
     with open('t100market.csv') as csvfile:
         reader = csv.DictReader(csvfile)
         destination_list = sort_per_destination(reader)
@@ -78,10 +79,18 @@ def __main__():
     for travel in sorted_origins[len(sorted_origins)-50:]:
         print(travel.__str__())
 
+
+def print_airport_api_request():
     params = {'user_key': 'eb6c3e8d6fb060a9a99f7b9fd061013c'}
     r = requests.get('https://airport.api.aero/airport', params=params)
+    xml_response = xml.dom.minidom.parse(r.content)
+    pretty_xml = xml_response.toprettyxml()
+    print(r.content)
 
-    pprint(r.content)
 
+def __main__():
+
+    #organise_files()
+    print_airport_api_request()
 
 __main__()
