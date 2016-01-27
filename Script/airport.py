@@ -3,7 +3,6 @@ import requests
 import xml.dom.minidom
 
 
-#Testing
 
 
 class OriginTravel:
