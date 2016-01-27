@@ -2,7 +2,6 @@ import csv
 import requests
 from pprint import pprints
 
-#Testing
 
 
 class OriginTravel:
