@@ -1,6 +1,6 @@
 import csv
 import requests
-from pprint import pprints
+from pprint import pprint
 
 #Testing
 
@@ -82,7 +82,7 @@ def __main__():
     params = {'user_key': 'eb6c3e8d6fb060a9a99f7b9fd061013c'}
     r = requests.get('https://airport.api.aero/airport', params=params)
 
-    print(r.content)
+    pprint(r.content)
 
 
 __main__()
