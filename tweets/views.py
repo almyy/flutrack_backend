@@ -17,7 +17,7 @@ def tweets(request):
     if request.method == 'GET':
         returned_tweets = []
         for t in cursor:
-            tweet = Tweet(username=t['user_name'], lat=t['latitude'], lng=t['longitude'], text=t['tweet_text'])
+            tweet = Tweet(username=t['username'], lat=t['lat'], lng=t['lng'], text=t['text'])
             returned_tweets.append(tweet)
         serialized_list = TweetSerializer(returned_tweets, many=True)
         return Response(serialized_list.data)
