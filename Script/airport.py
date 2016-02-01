@@ -21,8 +21,6 @@ def read_air_travel_data():
     with open('t100market.csv') as csvfile:
         reader = csv.DictReader(csvfile)
         origin_list = sort_per_origin(reader)
-    print("2.5")
-
     return sorted(origin_list, key=lambda k: k[2])
 
 
@@ -91,4 +89,5 @@ def __main__():
 
     print(get_passengers_between_cities('Los Angeles', 'Atlanta'))
 
-__main__()
+if __name__ == '__main__':
+    __main__()
