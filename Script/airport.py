@@ -3,6 +3,7 @@ import requests
 import json
 
 
+# Sort data from airport.api.aero on origin and destination airports.
 def sort_per_origin(list_input):
     sorted_list = sorted(list_input, key=lambda k: (k['ORIGIN'], k['DEST']))
     current_origin = ['', '', 0]
@@ -17,6 +18,7 @@ def sort_per_origin(list_input):
     return result
 
 
+# Initiate and read the t100market database.
 def read_air_travel_data():
     with open('t100market.csv') as csvfile:
         reader = csv.DictReader(csvfile)
@@ -24,7 +26,8 @@ def read_air_travel_data():
     return sorted(origin_list, key=lambda k: k[2])
 
 
-def parse_airport_api():
+# Query aiport.aero from flight data based on airports.
+def get_flight_data():
     params = {'user_key': 'eb6c3e8d6fb060a9a99f7b9fd061013c'}
     r = requests.get('https://airport.api.aero/airport', params=params)
     result = r.text.replace("callback(", "").replace(")", "")
@@ -34,13 +37,15 @@ def parse_airport_api():
     return result_json
 
 
-def parse_airport_api_locally():
+# Get an instance of the queried flight data stored locally.
+def get_flight_data_local():
     with open('airports.json') as data:
         result = json.load(data)
     return result
 
 
-def init_city_list(filename):
+# Initiate a dictionary of matrix cities, with city name as key.
+def init_city_dictionary(filename):
     res_dict = {}
     f = open(filename)
     for line in f:
@@ -48,6 +53,7 @@ def init_city_list(filename):
     return res_dict
 
 
+# Initiate an alphabetical list of the cities used in the matrix.
 def init_city_names(filename):
     res_list = []
     f = open(filename)
@@ -57,6 +63,7 @@ def init_city_names(filename):
     return res_list
 
 
+# Map all belonging airports to a city in the dictionary.
 def map_airports_to_cities(res_dict, api_lookup):
     for airport in api_lookup['airports']:
         if airport['city'] in res_dict:
@@ -65,11 +72,13 @@ def map_airports_to_cities(res_dict, api_lookup):
     return res_dict
 
 
+# Return the number of passengers that has travelled between two cities.
 def get_passengers_between_cities(city1, city2):
     return city_matrix[city_list.index(city1)][city_list.index(city2)] + city_matrix[city_list.index(city2)][
         city_list.index(city1)]
 
 
+# Initiate the matrix with travel data between the cities.
 def init_city_travel_matrix(airports, data):
     for row in data:
         for key in airports:
@@ -78,12 +87,13 @@ def init_city_travel_matrix(airports, data):
                     if row[1] in airports[key2] and key != key2:
                         city_matrix[city_list.index(key)][city_list.index(key2)] = row[2]
 
+
 city_list = init_city_names('cities.txt')
 city_matrix = [[0] * 52 for x in range(52)]
 
 
 def __main__():
-    airports = map_airports_to_cities(init_city_list('cities.txt'), parse_airport_api_locally())
+    airports = map_airports_to_cities(init_city_dictionary('cities.txt'), get_flight_data_local())
     data = read_air_travel_data()
     init_city_travel_matrix(airports, data)
 
