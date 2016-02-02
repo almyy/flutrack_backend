@@ -6,18 +6,6 @@ def filter_location(t):
     pass
 
 
-def get_tweets():
-    auth = tweepy.OAuthHandler('eGH2C9cpRIvYRbYudAJN7Vf2c', 'vt2D0TXrEsNSvBDl5BERGIUyCgSsFjX3hIj1jAVbCOKInpKQAi')
-    auth.set_access_token('3523253362-YmQDEpGx4YeAMhny1XDiS9ycnBJz6pRtWL2rKOI', 'GEHu7VTG3oFap1lPFBPLpTED5Hz8APB7oreGdwoLIwEZ6')
-    api = tweepy.API(auth)
-    search_query = "flu OR cough OR sore OR throat OR headache"
-    cursor = tweepy.Cursor(api.search, q=search_query)
-    n = 0
-    for t in cursor.items(10000):
-        n += 1
-        print(str(n) + " " + str(t.text.encode("utf-8")))
-
-
 class FluStreamListener(tweepy.StreamListener):
     status_count = 0
 
