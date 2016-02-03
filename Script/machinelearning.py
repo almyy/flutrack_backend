@@ -55,12 +55,13 @@ def extract_features(tweet):
 
 
 # Read the tweets one by one and process it
-inpTweets = csv.reader(open('sampleTweets1.csv', 'r'), delimiter=',', quotechar='|')
+inpTweets = csv.reader(open('sampleTweets.csv', 'r', encoding='utf-8'), delimiter=',', quotechar='|')
 tweets = []
 featureList = []
 for row in inpTweets:
     if row[0] == '+':
         sentiment = 'positive'
+        print(row[1].encode('utf-8'))
     else:
         sentiment = 'negative'
     tweet = row[1]
@@ -74,6 +75,6 @@ training_set = nltk.classify.util.apply_features(extract_features, tweets)
 
 NBClassifier = nltk.NaiveBayesClassifier.train(training_set)
 
-test_tweet = 'It\'s a hard day today. The feeling of head spinning, headache, body ache and with no appetite. Need a warm bath, dinner and a quiet rest.'
+test_tweet = 'Sick flu headache fever'
 processedTweet = process_tweet(test_tweet)
 print(NBClassifier.classify(extract_features(get_feature_vector(processedTweet, stop_words))))
