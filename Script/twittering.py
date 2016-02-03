@@ -1,6 +1,7 @@
+import codecs
 import tweepy
 import re
-import json
+import configparser
 
 f = codecs.open('sampleTweets.csv', 'w', encoding='utf-8')
 
@@ -47,9 +48,17 @@ class FluStreamListener(tweepy.StreamListener):
 
 
 def stream_tweets():
-    auth = tweepy.OAuthHandler('eGH2C9cpRIvYRbYudAJN7Vf2c', 'vt2D0TXrEsNSvBDl5BERGIUyCgSsFjX3hIj1jAVbCOKInpKQAi')
-    auth.set_access_token('3523253362-YmQDEpGx4YeAMhny1XDiS9ycnBJz6pRtWL2rKOI',
-                          'GEHu7VTG3oFap1lPFBPLpTED5Hz8APB7oreGdwoLIwEZ6')
+    config = configparser.RawConfigParser()
+    config.read_file((open('../config.ini')))
+
+    consumer_key = config.get("Twitter", 'ConsumerKey')
+    consumer_secret = config.get("Twitter", 'ConsumerSecret')
+    access_token = config.get("Twitter", 'AccessToken')
+    access_token_secret = config.get("Twitter", 'AccessTokenSecret')
+
+    auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
+    auth.set_access_token(access_token, access_token_secret)
+
     stream_listener = FluStreamListener()
     stream = tweepy.Stream(auth=auth, listener=stream_listener)
     machine_learning_data = ['fever', 'sick', 'cough', 'flu', 'influenza', 'runny nose', 'stuffed nose', 'sore throat',
@@ -58,11 +67,11 @@ def stream_tweets():
             'sick cough', 'fever cough', 'sore throat', 'headache fever', 'fatigued sick', 'fever tired',
             'vomiting flu', 'chills flu']
     try:
-        stream.filter(track=data)
+        stream.filter(track=machine_learning_data)
     except KeyboardInterrupt:
         stream_listener.save_history()
         stream.filter(track=data)
-    except (KeyboardInterrupt, AttributeError) as e:
+    except AttributeError as e:
         print(e)
 
 
