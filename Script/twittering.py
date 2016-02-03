@@ -2,23 +2,7 @@ import tweepy
 import re
 import json
 
-
-def filter_location(t):
-    # if t.
-    pass
-
-
-def get_tweets():
-    auth = tweepy.OAuthHandler('eGH2C9cpRIvYRbYudAJN7Vf2c', 'vt2D0TXrEsNSvBDl5BERGIUyCgSsFjX3hIj1jAVbCOKInpKQAi')
-    auth.set_access_token('3523253362-YmQDEpGx4YeAMhny1XDiS9ycnBJz6pRtWL2rKOI',
-                          'GEHu7VTG3oFap1lPFBPLpTED5Hz8APB7oreGdwoLIwEZ6')
-    api = tweepy.API(auth)
-    search_query = "flu OR cough OR sore OR throat OR headache"
-    cursor = tweepy.Cursor(api.search, q=search_query)
-    n = 0
-    for t in cursor.items(10000):
-        n += 1
-        print(str(n) + " " + str(t.text.encode("utf-8")))
+f = codecs.open('sampleTweets.csv', 'w', encoding='utf-8')
 
 
 def filter_tweet(status):
@@ -26,6 +10,10 @@ def filter_tweet(status):
         return False
     else:
         return True
+
+
+def store_status_ml(status):
+    f.write(",|" + status.text + '|\n')
 
 
 class FluStreamListener(tweepy.StreamListener):
@@ -38,9 +26,8 @@ class FluStreamListener(tweepy.StreamListener):
         if filter_tweet(status):
             self.status_count_original += 1
             print(str(self.status_count_original) + " " + str(status.text.encode("utf-8")))
-            # if self.previous_status_text == re.sub(r"https?:\/\/(t\.co\/[a-zA-z]+)", "URL", status.text):
-            self.previous_status_text = re.sub(r"https?:\/\/(t\.co\/[a-zA-z]+)", "URL", status.text)
-            self.store_status(status)
+            # self.previous_status_text = re.sub(r"https?:\/\/(t\.co\/[a-zA-z]+)", "", status.text)
+            store_status_ml(status)
         else:
             self.status_count_retweet += 1
             # print("Retweet count: " + str(self.status_count_retweet) + str(status.text.encode("utf-8")))
@@ -54,7 +41,7 @@ class FluStreamListener(tweepy.StreamListener):
                 " Text: " + str(status.text.encode("utf-8")))
 
     def save_history(self):
-        with open("status_dump.txt", "w") as text_file:
+        with codecs.open("status_dump.csv", "w", encoding='utf-8') as text_file:
             for status in self.status_history:
                 text_file.write("\n" + str(status))
 
@@ -74,6 +61,9 @@ def stream_tweets():
         stream.filter(track=data)
     except KeyboardInterrupt:
         stream_listener.save_history()
+        stream.filter(track=data)
+    except (KeyboardInterrupt, AttributeError) as e:
+        print(e)
 
 
 # get_tweets()

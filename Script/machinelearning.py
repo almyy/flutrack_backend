@@ -1,5 +1,6 @@
 import csv
 import re
+import nltk
 
 
 def process_tweet(tweet_text):
@@ -45,16 +46,35 @@ def get_feature_vector(tweet, stopWords):
     return featureVector
 
 
-#Read the tweets one by one and process it
-inpTweets = csv.reader(open('sampleTweets1.csv', 'r'), delimiter=',', quotechar='|')
+def extract_features(tweet):
+    tweet_words = set(tweet)
+    features = {}
+    for word in featureList:
+        features['contains(%s)' % word] = (word in tweet_words)
+    return features
+
+
+# Read the tweets one by one and process it
+inpTweets = csv.reader(open('sampleTweets.csv', 'r', encoding='utf-8'), delimiter=',', quotechar='|')
 tweets = []
+featureList = []
 for row in inpTweets:
     if row[0] == '+':
         sentiment = 'positive'
-        print(row[1])
+        print(row[1].encode('utf-8'))
     else:
         sentiment = 'negative'
     tweet = row[1]
     processedTweet = process_tweet(tweet)
     featureVector = get_feature_vector(processedTweet, stop_words)
     tweets.append((featureVector, sentiment))
+    featureList.extend(featureVector)
+
+featureList = list(set(featureList))
+training_set = nltk.classify.util.apply_features(extract_features, tweets)
+
+NBClassifier = nltk.NaiveBayesClassifier.train(training_set)
+
+test_tweet = 'Sick flu headache fever'
+processedTweet = process_tweet(test_tweet)
+print(NBClassifier.classify(extract_features(get_feature_vector(processedTweet, stop_words))))
