@@ -38,13 +38,12 @@ class FluStreamListener(tweepy.StreamListener):
         if filter_tweet(status):
             self.status_count_original += 1
             print(str(self.status_count_original) + " " + str(status.text.encode("utf-8")))
-            if self.previous_status_text == re.sub(r"https?:\/\/(t\.co\/[a-zA-z]+)", "", status.text):
-                print("Herro")
-            self.previous_status_text = re.sub(r"https?:\/\/(t\.co\/[a-zA-z]+)", "", status.text)
+            # if self.previous_status_text == re.sub(r"https?:\/\/(t\.co\/[a-zA-z]+)", "URL", status.text):
+            self.previous_status_text = re.sub(r"https?:\/\/(t\.co\/[a-zA-z]+)", "URL", status.text)
             self.store_status(status)
         else:
             self.status_count_retweet += 1
-            print("Retweet count: " + str(self.status_count_retweet) + str(status.text.encode("utf-8")))
+            # print("Retweet count: " + str(self.status_count_retweet) + str(status.text.encode("utf-8")))
 
     def on_error(self, status_code):
         print(str(status_code))
@@ -72,7 +71,7 @@ def stream_tweets():
             'sick cough', 'fever cough', 'sore throat', 'headache fever', 'fatigued sick', 'fever tired',
             'vomiting flu', 'chills flu']
     try:
-        stream.filter(track=machine_learning_data)
+        stream.filter(track=data)
     except KeyboardInterrupt:
         stream_listener.save_history()
 
