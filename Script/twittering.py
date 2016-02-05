@@ -3,6 +3,7 @@ import tweepy
 import csv
 import re
 import nltk
+from time import sleep
 
 
 class MachineLearning:
@@ -64,7 +65,7 @@ class MachineLearning:
         for row in inp_tweets:
             if row[0] == '+':
                 sentiment = 'positive'
-                print(row[1].encode('utf-8'))
+                # print(row[1].encode('utf-8'))
             else:
                 sentiment = 'negative'
             tweet = row[1]
@@ -75,12 +76,13 @@ class MachineLearning:
 
         self.feature_list = list(set(self.feature_list))
         training_set = nltk.classify.util.apply_features(self.extract_features, tweets)
-        self.classifier = nltk.NaiveBayesClassifier.train(training_set)
+        self.classifier = nltk.classify.maxent.MaxentClassifier.train(training_set, 'GIS', trace=3,
+                                                                       labels=None,
+                                                                       gaussian_prior_sigma=0, max_iter=10)
 
-
-        # test_tweet = 'fever headache'
-        # processedTweet = process_tweet(test_tweet)
-        # print(NBClassifier.classify(extract_features(get_feature_vector(processedTweet, stop_words))))
+        test_tweet = 'fever headache flu. Body hurts. Fuck!'
+        processed_tweet = self.process_tweet(test_tweet)
+        print(self.classifier.classify(self.extract_features(self.get_feature_vector(processed_tweet))))
 
 
 def filter_tweet(status):
@@ -100,6 +102,9 @@ class FluStreamListener(tweepy.StreamListener):
     previous_status_text = ""
     status_history = []
     learner = MachineLearning()
+    # processed_tweet = learner.process_tweet('yummy vitamins. Gief smoothie. Possibly pounding body catch. Care')
+
+    # print(str(processed_tweet.encode('utf-8')) + ", " + learner.classify(processed_tweet))
 
     def on_status(self, status):
         if filter_tweet(status):
@@ -117,15 +122,52 @@ class FluStreamListener(tweepy.StreamListener):
     def on_error(self, status_code):
         print(str(status_code))
 
-    # def store_status(self, status):
-    #     self.status_history.append(
-    #             str(self.status_count_original) + " User: " + str(status.user.screen_name) +
-    #             " Text: " + str(status.text.encode("utf-8")))
-    #
-    # def save_history(self):
-    #     with codecs.open("status_dump.csv", "w", encoding='utf-8') as text_file:
-    #         for status in self.status_history:
-    #             text_file.write("\n" + str(status))
+        # def store_status(self, status):
+        #     self.status_history.append(
+        #             str(self.status_count_original) + " User: " + str(status.user.screen_name) +
+        #             " Text: " + str(status.text.encode("utf-8")))
+        #
+        # def save_history(self):
+        #     with codecs.open("status_dump.csv", "w", encoding='utf-8') as text_file:
+        #         for status in self.status_history:
+        #             text_file.write("\n" + str(status))
+
+
+def replace_ids_with_tweets():
+    auth = tweepy.OAuthHandler('bQGknrESsRgoYlpHDVbza50RY', 'kloN6dBHcWMcgQQ7gCCsuw93YhyNtjxU1COsiO0vIyiJu4Pw7R')
+    auth.set_access_token('3523682849-WeHuK2sGZueH1CWLPEWpzIi8swHtWo9ZQ3pDrsa',
+                          'ZcWPBW0akqdFJVuB4v3VvVcXbozUsFbmQPbMRGxiv3QPr')
+    api = tweepy.API(auth)
+    failed_tweet_counter = 0
+    request_counter = 0
+    with codecs.open("flu_annotations/RelatedVsNotRelated2012TweetIDs.txt", "r") as read_file:
+        with codecs.open("flu_annotations/RelatedVsNotRelated2012Tweets.csv", "w", encoding='UTF-8') as write_file:
+            for line in read_file:
+                values = line.split('\t')
+                id = values[0]
+                sentiment = values[1].rstrip()
+                try:
+                    request_counter += 1
+                    status = api.get_status(id=id)
+                except tweepy.error.TweepError as e:
+                    # if e.status
+                    # print("Couldn't find tweet with id " + id)
+                    if e.response.status_code == 429:
+                        print("Exceeded rate limit. Sleeping for 15 minutes")
+                        sleep(901)
+                        try:
+                            status = api.get_status(id=id)
+                        except tweepy.error.TweepError:
+                            failed_tweet_counter += 1
+                            print("Couldnt find tweet with id " + id)
+                            continue
+                    print("Couldnt find tweet with id " + id)
+                    failed_tweet_counter += 1
+                    continue
+                write_file.write('|'+sentiment+'|,|'+status.text+'|\n')
+                print("Wrote tweet no. " + str(request_counter-failed_tweet_counter))
+            write_file.close()
+        read_file.close()
 
 
 def stream_tweets():
@@ -141,7 +183,7 @@ def stream_tweets():
             'vomiting flu', 'chills flu']
 
     try:
-        stream.filter(track=data)
+        stream.filter(track=machine_learning_data)
     except (KeyboardInterrupt, AttributeError) as e:
         print(e)
 
