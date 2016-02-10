@@ -33,17 +33,17 @@ class MachineLearning:
         fp.close()
 
     def get_feature_vector(self, tweet):
-        featureVector = []
+        feature_vector = []
         words = tweet.split()
         for w in words:
             w = self.replace_two_or_more(w)
             w = w.strip('\'"?,.')
             val = re.search(r"^[a-zA-Z][a-zA-Z0-9]*[a-zA-Z]+[a-zA-Z0-9]*$", w)
-            if w in self.stopWords or val is None:
+            if w in self.stop_words or val is None:
                 continue
             else:
-                featureVector.append(w.lower())
-        return featureVector
+                feature_vector.append(w.lower())
+        return feature_vector
 
     def extract_features(self, tweet):
         tweet_words = set(tweet)

@@ -2,8 +2,8 @@ import codecs
 import tweepy
 import csv
 import re
-import nltk
 from time import sleep
+from sklearn.svm import libsvm
 
 
 class MachineLearning:
@@ -55,12 +55,48 @@ class MachineLearning:
             features['contains(%s)' % word] = (word in tweet_words)
         return features
 
+    def get_svm_feature_vector_and_labels(self, tweets):
+        sorted_features = sorted(self.feature_list)
+        map = {}
+        feature_vector = []
+        labels = []
+        for t in tweets:
+            label = 0
+            map = {}
+            for w in sorted_features:
+                map[w] = 0
+            tweet_words = t[1]
+            tweet_opinion = t[0]
+            for word in tweet_words:
+                word = self.replace_two_or_more(word)
+                word = word.strip('\'"?,.')
+                if word in map:
+                    map[word] = 1
+            values = map.values()
+            feature_vector.append(values)
+            if tweet_opinion == 'positive':
+                label = 0
+            else:
+                label = 1
+            labels.append(label)
+        return {'feature_vector': feature_vector, 'labels': labels}
+
     def classify(self, tweet):
         return self.classifier.classify(self.extract_features(self.get_feature_vector(tweet)))
 
+    def train_svm_classifier(self, tweets):
+        result = self.get_svm_feature_vector_and_labels(tweets)
+        problem = libsvm.svm_problem(result['labels'], result['feature_vector'])
+        #'-q' option suppress console output
+        param = libsvm.svm_parameter('-q')
+        param.kernel_type = libsvm.LINEAR
+        self.classifier = libsvm.svm_train(problem, param)
+        libsvm.svm_save_model(libsvm.classifierDumpFile, self.classifier)
+
     def __init__(self):
         # Read the tweets one by one and process it
-        inp_tweets = csv.reader(open('sampleTweets.csv', 'r', encoding='utf-8'), delimiter=',', quotechar='|')
+        inp_tweets = csv.reader(open('data/RelatedVsNotRelated2012Tweets.csv', 'r', encoding='utf-8'),
+                                delimiter=',', quotechar='|')
         tweets = []
         for row in inp_tweets:
             if row[0] == '+':
@@ -75,14 +111,17 @@ class MachineLearning:
             self.feature_list.extend(feature_vector)
 
         self.feature_list = list(set(self.feature_list))
-        training_set = nltk.classify.util.apply_features(self.extract_features, tweets)
-        self.classifier = nltk.classify.maxent.MaxentClassifier.train(training_set, 'GIS', trace=3,
-                                                                       labels=None,
-                                                                       gaussian_prior_sigma=0, max_iter=10)
-
-        test_tweet = 'fever headache flu. Body hurts. Fuck!'
-        processed_tweet = self.process_tweet(test_tweet)
-        print(self.classifier.classify(self.extract_features(self.get_feature_vector(processed_tweet))))
+        # training_set = nltk.classify.util.apply_features(self.extract_features, tweets)
+        # self.classifier = nltk.classify.maxent.MaxentClassifier.train(training_set, 'GIS', trace=3,
+        #                                                               labels=None,
+        #                                                               gaussian_prior_sigma=0, max_iter=10)
+        # self.classifier.show_most_informative_features(n=20)
+        #
+        # test_tweet = 'fever headache flu. Body hurts. Fuck!'
+        # processed_tweet = self.process_tweet(test_tweet)
+        # print(self.classifier.classify(self.extract_features(self.get_feature_vector(processed_tweet))))
+        self.train_svm_classifier(tweets)
+        # test_feature_vector =
 
 
 def filter_tweet(status):
@@ -101,7 +140,8 @@ class FluStreamListener(tweepy.StreamListener):
     status_count_retweet = 0
     previous_status_text = ""
     status_history = []
-    learner = MachineLearning()
+    # learner = MachineLearning()
+
     # processed_tweet = learner.process_tweet('yummy vitamins. Gief smoothie. Possibly pounding body catch. Care')
 
     # print(str(processed_tweet.encode('utf-8')) + ", " + learner.classify(processed_tweet))
@@ -114,7 +154,7 @@ class FluStreamListener(tweepy.StreamListener):
 
             test_tweet = status.text
             processed_tweet = self.learner.process_tweet(test_tweet)
-            print(str(processed_tweet.encode('utf-8')) + ", " + self.learner.classify(processed_tweet))
+            print(self.learner.classify(processed_tweet) + ", " + str(processed_tweet.encode('utf-8')))
         else:
             self.status_count_retweet += 1
             # print("Retweet count: " + str(self.status_count_retweet) + str(status.text.encode("utf-8")))
@@ -140,8 +180,8 @@ def replace_ids_with_tweets():
     api = tweepy.API(auth)
     failed_tweet_counter = 0
     request_counter = 0
-    with codecs.open("flu_annotations/RelatedVsNotRelated2012TweetIDs.txt", "r") as read_file:
-        with codecs.open("flu_annotations/RelatedVsNotRelated2012Tweets.csv", "w", encoding='UTF-8') as write_file:
+    with codecs.open("data/RelatedVsNotRelated2012TweetIDs.txt", "r") as read_file:
+        with codecs.open("data/RelatedVsNotRelated2012Tweets.csv", "w", encoding='UTF-8') as write_file:
             for line in read_file:
                 values = line.split('\t')
                 id = values[0]
@@ -164,8 +204,8 @@ def replace_ids_with_tweets():
                     print("Couldnt find tweet with id " + id)
                     failed_tweet_counter += 1
                     continue
-                write_file.write('|'+sentiment+'|,|'+status.text+'|\n')
-                print("Wrote tweet no. " + str(request_counter-failed_tweet_counter))
+                write_file.write('|' + sentiment + '|,|' + status.text + '|\n')
+                print("Wrote tweet no. " + str(request_counter - failed_tweet_counter))
             write_file.close()
         read_file.close()
 
@@ -189,4 +229,5 @@ def stream_tweets():
 
 
 if __name__ == '__main__':
-    stream_tweets()
+    # stream_tweets()
+    print("")
