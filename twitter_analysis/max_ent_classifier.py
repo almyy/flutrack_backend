@@ -34,13 +34,14 @@ class MaxEntClassifier:
                 features.append(gram[0] + " " + gram[1])
         return features
 
-    def __init__(self, stop_words_file, training_data_file, needs_training, classifier_dump_file, feature_list_file):
+    def __init__(self, stop_words_file, training_data_file, needs_training, classifier_dump_file, feature_list_file,
+                 classifier_type='nb'):
         self.helper = ClassifierHelper()
         self.stop_words = self.init_stop_words(stop_words_file)
         self.feature_list = []
-
         if needs_training:
-            self.classifier = self.train_classifier(training_data_file, classifier_dump_file, feature_list_file)
+            self.classifier = self.train_classifier(training_data_file, classifier_dump_file, feature_list_file,
+                                                    classifier_type)
         else:
             with open(classifier_dump_file, 'rb') as f:
                 self.classifier = pickle.load(f)
@@ -55,7 +56,7 @@ class MaxEntClassifier:
     def show_informative_features(self, n):
         return self.classifier.show_most_informative_features(n)
 
-    def train_classifier(self, training_data_file, classifier_dump_file, feature_list_file):
+    def train_classifier(self, training_data_file, classifier_dump_file, feature_list_file, classifier_type):
         training_data = csv.reader(codecs.open(training_data_file, 'r', encoding='UTF-8'), delimiter=',', quotechar='|')
         tweets = []
         for row in training_data:
@@ -67,9 +68,17 @@ class MaxEntClassifier:
             tweets.append((feature_vector, sentiment))
         self.feature_list = list(set(self.feature_list))
         training_set = nltk.apply_features(self.extract_features, tweets)
-        out_classifier = nltk.classify.NaiveBayesClassifier.train(training_set)
-        with open(classifier_dump_file, 'wb') as f:
-            pickle.dump(out_classifier, f)
+
+        if classifier_type == 'nb':
+            out_classifier = nltk.classify.NaiveBayesClassifier.train(training_set)
+            with open(classifier_dump_file, 'wb') as f:
+                pickle.dump(out_classifier, f)
+        elif classifier_type == 'maxent':
+            out_classifier = nltk.classify.maxent.MaxentClassifier.train(training_set, 'GIS', trace=3, labels=None,
+                                                                         gaussian_prior_sigma=0, max_iter=10)
+            with open(classifier_dump_file, 'wb') as f:
+                pickle.dump(out_classifier, f)
+
         with open(feature_list_file, 'w') as f:
             for token in self.feature_list:
                 f.write(token + '\n')
@@ -85,10 +94,11 @@ class MaxEntClassifier:
 
 if __name__ == '__main__':
     classifier = MaxEntClassifier(stop_words_file='data/stopwords.txt', training_data_file='data/training_data.csv',
-                                  needs_training=False, classifier_dump_file='data/classifier_dump.pickle',
-                                  feature_list_file='data/feature_list.txt')
+                                  needs_training=False, classifier_dump_file='data/maxent_classifier_dump.pickle',
+                                  feature_list_file='data/feature_list.txt', classifier_type='maxent')
     negative_test_tweet = "throat flu spreading guide pregnant woman"
     positive_test_tweet = "feeling im getting flu spreading guide"
 
     print(classifier.classify(negative_test_tweet))
     print(classifier.classify(positive_test_tweet))
+    print(classifier.show_informative_features(20))
