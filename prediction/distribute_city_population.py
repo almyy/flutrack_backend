@@ -10,9 +10,9 @@ fraction_of_newly_ill_reported = 0.99  # beta. #TODO Set a correct beta value
 infection_distribution = []
 city_population = {}
 city_population_file = 'C:/Users/mikaelrs/Skole/Master/Repositories/flutrack_backend/' \
-                       'Script/data/citypopulation.csv'
+                       'prediction/data/citypopulation.csv'
 infection_distribution_file = 'C:/Users/mikaelrs/Skole/Master/Repositories/flutrack_backend/' \
-                              'Script/data/infection_distribution.csv'
+                              'prediction/data/infection_distribution.csv'
 
 
 # return f(time)
