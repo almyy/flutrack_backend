@@ -1,6 +1,7 @@
 import unittest
+
 from Script.prediction import airport
-from Script.prediction import distribute_city_population
+from prediction import distribute_city_population
 
 
 class AirportTestCase(unittest.TestCase):
