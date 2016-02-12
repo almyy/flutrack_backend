@@ -1,6 +1,5 @@
 import configparser
 import codecs
-import time
 
 import tweepy
 
@@ -19,7 +18,7 @@ def fetch_from_id():
     api = tweepy.API(auth, wait_on_rate_limit=True)
 
     id_data_file = 'data/AwarenessVsInfection2012TweetIDs.txt'
-    status_dump_file = 'data/training_data_v2.csv'
+    status_dump_file = 'data/training_data_awareness.csv'
     with open(id_data_file, 'r') as fr:
         with codecs.open(status_dump_file, 'w', encoding='utf-8') as fw:
             found_tweet = 0

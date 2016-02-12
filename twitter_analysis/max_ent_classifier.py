@@ -94,10 +94,10 @@ class MaxEntClassifier:
 
 if __name__ == '__main__':
     classifier = MaxEntClassifier(stop_words_file='data/stopwords.txt', training_data_file='data/training_data.csv',
-                                  needs_training=False, classifier_dump_file='data/maxent_classifier_dump.pickle',
-                                  feature_list_file='data/feature_list.txt', classifier_type='maxent')
-    negative_test_tweet = "throat flu spreading guide pregnant woman"
-    positive_test_tweet = "feeling im getting flu spreading guide"
+                                  needs_training=False, classifier_dump_file='data/classifier_dump.pickle',
+                                  feature_list_file='data/feature_list.txt', classifier_type='nb')
+    negative_test_tweet = "Flu news: This just in. Swine flu is coming again. Take your vaccines!"
+    positive_test_tweet = "Im getting the flu I think. High fever, coughing and sore throat."
 
     print(classifier.classify(negative_test_tweet))
     print(classifier.classify(positive_test_tweet))
