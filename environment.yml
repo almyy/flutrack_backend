@@ -1,0 +1,15 @@
+name flutrack-backend
+dependencies:
+  - mkl=11.3.1=0
+  - msvc_runtime=1.0.1=vc14_0
+  - numpy=1.10.4=py35_0
+  - pip=8.0.2=py35_0
+  - pycosat=0.6.1=py35_0
+  - pycrypto=2.6.1=py35_3
+  - python=3.5.1=2
+  - pyyaml=3.11=py35_2
+  - requests=2.9.1=py35_0
+  - scikit-learn=0.17=np110py35_2
+  - scipy=0.17.0=np110py35_0
+  - setuptools=19.6.2=py35_0
+  - wheel=0.26.0=py35_1
