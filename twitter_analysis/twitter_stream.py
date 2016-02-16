@@ -2,8 +2,15 @@ import codecs
 import tweepy
 import re
 import configparser
+from max_ent_classifier import MaxEntClassifier
+from classifier_helper import ClassifierHelper
 
 f = codecs.open('sampleTweets.csv', 'w', encoding='utf-8')
+classifier = MaxEntClassifier(stop_words_file='data/stopwords.txt', related_training_data_file='data/training_data.csv', awareness_training_data_file='data/training_data_awareness_v2.csv',
+                              needs_training=False, related_classifier_dump_file='data/classifier_dump.pickle',
+                              awareness_classifier_dump_file='data/awareness_nb_classifier_dump.pickle',
+                              feature_list_file='data/feature_list.txt')
+helper = ClassifierHelper()
 
 
 def filter_tweet(status):
@@ -24,14 +31,8 @@ class FluStreamListener(tweepy.StreamListener):
     status_history = []
 
     def on_status(self, status):
-        if filter_tweet(status):
-            self.status_count_original += 1
-            print(str(self.status_count_original) + " " + str(status.text.encode("utf-8")))
-            # self.previous_status_text = re.sub(r"https?:\/\/(t\.co\/[a-zA-z]+)", "", status.text)
-            store_status_ml(status)
-        else:
-            self.status_count_retweet += 1
-            # print("Retweet count: " + str(self.status_count_retweet) + str(status.text.encode("utf-8")))
+        print("awareness: " + str(classifier.classify_awareness(status.text)) + ", related: " + str(
+            classifier.classify_related(status.text)) + '\t' + str(helper.process_tweet(status.text).encode('utf-8')))
 
     def on_error(self, status_code):
         print(str(status_code))
@@ -66,14 +67,9 @@ def stream_tweets():
     data = ['fever sick', 'fever cough', 'flu sick', 'flu fever', 'runny nose', 'stuffed nose',
             'sick cough', 'fever cough', 'sore throat', 'headache fever', 'fatigued sick', 'fever tired',
             'vomiting flu', 'chills flu']
-    try:
-        stream.filter(track=machine_learning_data)
-    except KeyboardInterrupt:
-        stream_listener.save_history()
-        stream.filter(track=data)
-    except AttributeError as e:
-        print(e)
+
+    stream.filter(track=machine_learning_data)
 
 
-# get_tweets()
-stream_tweets()
+if __name__ == '__main__':
+    stream_tweets()

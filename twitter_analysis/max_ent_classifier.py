@@ -34,27 +34,38 @@ class MaxEntClassifier:
                 features.append(gram[0] + " " + gram[1])
         return features
 
-    def __init__(self, stop_words_file, training_data_file, needs_training, classifier_dump_file, feature_list_file,
+    def __init__(self, stop_words_file, related_training_data_file, awareness_training_data_file, needs_training,
+                 related_classifier_dump_file, awareness_classifier_dump_file, feature_list_file,
                  classifier_type='nb'):
         self.helper = ClassifierHelper()
         self.stop_words = self.init_stop_words(stop_words_file)
         self.feature_list = []
         if needs_training:
-            self.classifier = self.train_classifier(training_data_file, classifier_dump_file, feature_list_file,
-                                                    classifier_type)
+            self.related_classifier = self.train_classifier(related_training_data_file, related_classifier_dump_file,
+                                                            feature_list_file,
+                                                            classifier_type)
+            self.awareness_classifier = self.train_classifier(awareness_training_data_file,
+                                                              awareness_classifier_dump_file, feature_list_file,
+                                                              classifier_type)
         else:
-            with open(classifier_dump_file, 'rb') as f:
-                self.classifier = pickle.load(f)
+            with open(related_classifier_dump_file, 'rb') as f:
+                self.related_classifier = pickle.load(f)
+            with open(awareness_classifier_dump_file, 'rb') as f:
+                self.awareness_classifier = pickle.load(f)
             with open(feature_list_file, 'r') as f:
                 for token in f:
                     self.feature_list.append(token.strip())
 
-    def classify(self, tweet):
+    def classify_awareness(self, tweet):
         processed_tweet = self.helper.process_tweet(tweet)
-        return self.classifier.classify(self.extract_features(self.get_feature_vector(processed_tweet)))
+        return self.awareness_classifier.classify(self.extract_features(self.get_feature_vector(processed_tweet)))
+
+    def classify_related(self, tweet):
+        processed_tweet = self.helper.process_tweet(tweet)
+        return self.related_classifier.classify(self.extract_features(self.get_feature_vector(processed_tweet)))
 
     def show_informative_features(self, n):
-        return self.classifier.show_most_informative_features(n)
+        return self.related_classifier.show_most_informative_features(n), self.awareness_classifier.show_most_informative_features(n)
 
     def train_classifier(self, training_data_file, classifier_dump_file, feature_list_file, classifier_type):
         training_data = csv.reader(codecs.open(training_data_file, 'r', encoding='UTF-8'), delimiter=',', quotechar='|')
@@ -93,12 +104,15 @@ class MaxEntClassifier:
 
 
 if __name__ == '__main__':
-    classifier = MaxEntClassifier(stop_words_file='data/stopwords.txt', training_data_file='data/training_data.csv',
-                                  needs_training=False, classifier_dump_file='data/classifier_dump.pickle',
+    classifier = MaxEntClassifier(stop_words_file='data/stopwords.txt',
+                                  related_training_data_file='data/training_data.csv',
+                                  awareness_training_data_file='data/training_data_awareness_v2.csv',
+                                  needs_training=False, related_classifier_dump_file='data/classifier_dump.pickle',
+                                  awareness_classifier_dump_file='data/awareness_nb_classifier_dump.pickle',
                                   feature_list_file='data/feature_list.txt', classifier_type='nb')
     negative_test_tweet = "Flu news: This just in. Swine flu is coming again. Take your vaccines!"
     positive_test_tweet = "Im getting the flu I think. High fever, coughing and sore throat."
+    should_be_related_and_infection = "Coughing. Sore throat feeling worse. Think im getting the flu."
+    should_be_related_and_awareness = "Hope everyone know that swine flu is around. Spread the word! If you have fever, visit the doctor"
 
-    print(classifier.classify(negative_test_tweet))
-    print(classifier.classify(positive_test_tweet))
     print(classifier.show_informative_features(20))
