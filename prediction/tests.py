@@ -1,6 +1,6 @@
 import unittest
 
-from Script.prediction import airport
+from prediction import airport
 from prediction import distribute_city_population
 
 
@@ -24,7 +24,6 @@ class AirportTestCase(unittest.TestCase):
         self.assertEqual(row_size * col_size, 52 * 52, "Wrong matrix size")
 
     def test_reading_air_travel_data(self):
-        # air_travel_data = airport.read_air_travel_data()
         passengers_lax_jfk = 0
         passengers_lax_lga = 0
         passengers_jfk_lax = 0

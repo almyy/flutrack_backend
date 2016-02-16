@@ -3,10 +3,10 @@ import requests
 import json
 import random
 
-airport_file = 'C:/Users/mikaelrs/Skole/Master/Repositories/flutrack_backend/Script/data/airports.json'
-cities = 'C:/Users/mikaelrs/Skole/Master/Repositories/flutrack_backend/Script/data/cities.txt'
-t100 = 'C:/Users/mikaelrs/Skole/Master/Repositories/flutrack_backend/Script/data/t100market.csv'
-chosen_airports = 'C:/Users/mikaelrs/Skole/Master/Repositories/flutrack_backend/Script/data/chosen_airports.csv'
+airport_file = 'C:/Users/mikaelrs/Skole/Master/Repositories/flutrack_backend/prediction/data/airports.json'
+cities = 'C:/Users/mikaelrs/Skole/Master/Repositories/flutrack_backend/prediction/data/cities.txt'
+t100 = 'C:/Users/mikaelrs/Skole/Master/Repositories/flutrack_backend/prediction/data/t100market.csv'
+chosen_airports = 'C:/Users/mikaelrs/Skole/Master/Repositories/flutrack_backend/prediction/data/chosen_airports.csv'
 city_matrix = [[0] * 52 for x in range(52)]
 city_list = []
 
@@ -34,8 +34,8 @@ def init_dummy_matrix():
 
 # Initiate and sort the t100market database.
 def read_air_travel_data():
-    with open(t100) as csvfile:
-        reader = csv.DictReader(csvfile)
+    with open(t100) as csv_file:
+        reader = csv.DictReader(csv_file)
         origin_list = sort_per_origin(reader)
     return sorted(origin_list, key=lambda k: k[2])
 
