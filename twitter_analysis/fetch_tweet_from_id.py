@@ -17,8 +17,8 @@ def fetch_from_id():
     auth.set_access_token(access_token, access_token_secret)
     api = tweepy.API(auth, wait_on_rate_limit=True)
 
-    id_data_file = 'data/AwarenessVsInfection2012TweetIDs.txt'
-    status_dump_file = 'data/training_data_awareness.csv'
+    id_data_file = 'data/AwarenessVsInfection2009TweetIDs.txt'
+    status_dump_file = 'data/training_data_awareness_v2.csv'
     with open(id_data_file, 'r') as fr:
         with codecs.open(status_dump_file, 'w', encoding='utf-8') as fw:
             found_tweet = 0
