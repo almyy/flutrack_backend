@@ -1,23 +1,23 @@
 name: flutrack-backend
 dependencies:
-  - mkl=11.3.1=0
-  - numpy=1.10.4=py35_0
-  - pip=8.0.2=py35_0
-  - pycosat=0.6.1=py35_0
-  - python=3.5.1
-  - pyyaml=3.11=py35_2
-  - requests=2.9.1=py35_0
-  - scikit-learn=0.17=np110py35_2
-  - scipy=0.17.0=np110py35_0
-  - setuptools=19.6.2=py35_0
-  - wheel=0.26.0=py35_1
-  - django==1.9.2
-  - djangorestframework==3.3.2
-  - conda==3.19.1
+  - mkl
+  - numpy
+  - pip
+  - pycosat
+  - python
+  - pyyaml
+  - requests
+  - scikit-learn
+  - scipy
+  - setuptools
+  - wheel
+  - django
+  - djangorestframework
+  - conda
   - pip:
-    - tweepy==3.5.0
-    - virtualenv==14.0.6
-    - gunicorn==19.4.5
-    - requests-oauthlib==0.6.0
-    - requests=2.9.1=py35_0
-    - oauthlib==1.0.3
+    - tweepy
+    - virtualenv
+    - gunicorn
+    - requests-oauthlib
+    - requests
+    - oauthlib
