@@ -4,7 +4,7 @@ from pymongo.errors import OperationFailure
 
 client = MongoClient('mongodb://heroku_k99m6wnb:slu38scru44f1c5s2v4h60ig72@ds011238.mongolab.com:11238/heroku_k99m6wnb')
 print('client connected')
-db = client.flutrack_db
+db = client.heroku_k99m6wnb
 tweets = db.tweets
 
 
@@ -22,10 +22,7 @@ def populate_from_json(json):
             'username': t['user_name'],
             'text': t['tweet_text']
         }
-        try:
-            tweets.insert_one(tweet)
-        except OperationFailure as e:
-            print(e.details)
+        tweets.insert_one(tweet)
 
 
 def __main__():
