@@ -9,8 +9,7 @@ tweets = db.tweets
 def populate_from_flutrack_api():
     r = requests.get("http://api.flutrack.org/results.json")
     data = r.json()
-    for i in range(1000):
-        populate_from_json(data)
+    populate_from_json(data)
 
 
 def populate_from_json(json):
