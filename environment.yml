@@ -19,3 +19,6 @@ dependencies:
     - requests
     - oauthlib
     - djangorestframework
+    - dj-database-url
+    - psycopg2
+    - whitenoise
