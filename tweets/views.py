@@ -10,7 +10,7 @@ from tweets.serializers import TweetSerializer
 @api_view(['GET'])
 def tweets(request):
     client = MongoClient(
-        'mongodb://heroku_k99m6wnb:slu38scru44f1c5s2v4h60ig82@ds011238.mongolab.com:11238/heroku_k99m6wnb')
+        'mongodb://heroku_k99m6wnb:slu38scru44f1c5s2v4h60ig72@ds011238.mongolab.com:11238/heroku_k99m6wnb')
     db = client.flutrack_db
     collection = db.tweets
     cursor = collection.find()

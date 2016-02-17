@@ -1,7 +1,7 @@
 from pymongo import MongoClient
 import requests
 
-client = MongoClient('mongodb://heroku_k99m6wnb:slu38scru44f1c5s2v4h60ig82@ds011238.mongolab.com:11238/heroku_k99m6wnb')
+client = MongoClient('mongodb://heroku_k99m6wnb:slu38scru44f1c5s2v4h60ig72@ds011238.mongolab.com:11238/heroku_k99m6wnb')
 db = client.flutrack_db
 tweets = db.tweets
 
