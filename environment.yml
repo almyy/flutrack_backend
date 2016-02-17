@@ -1,6 +1,5 @@
 name: flutrack-backend
 dependencies:
-  - mkl
   - python
   - requests
   - wheel
