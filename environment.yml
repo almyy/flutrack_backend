@@ -1,12 +1,9 @@
 name: flutrack-backend
 dependencies:
   - mkl
-  - pip
   - pycosat
   - python
-  - pyyaml
   - requests
-  - setuptools
   - wheel
   - django
   - pip:
