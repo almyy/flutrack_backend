@@ -124,8 +124,10 @@ def init_city_travel_matrix(airports, data):
             city_matrix[origin_index][destination_index] += row[2]
 
 
+
 init_city_names()
 airports = map_airports_to_cities(init_city_dictionary(), get_flight_data_local())
 data = read_air_travel_data()
 init_city_travel_matrix(airports, data)
-print("Passengers_between_ny_lax: " + str(get_passengers_between_cities("Los Angeles", "New York")))
+# print(city_matrix[14])
+# print("Passengers_between_ny_lax: " + str(get_passengers_between_cities("Los Angeles", "New York")))
