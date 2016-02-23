@@ -13,10 +13,12 @@ def tweets(request):
     mongo_uri = os.environ.get('MONGOLAB_URI')
     if mongo_uri is not None:
         client = MongoClient(mongo_uri)
-        print('client connected')
         db = client.heroku_k99m6wnb
         collection = db.tweets
         cursor = collection.find()
+        print('Connected to DB')
+    else:
+        print("Mongodb_uri not available")
 
     if request.method == 'GET':
         returned_tweets = []
