@@ -1,11 +1,13 @@
 from pymongo import MongoClient
 import requests
-from pymongo.errors import OperationFailure
+import os
 
-client = MongoClient('mongodb://heroku_k99m6wnb:slu38scru44f1c5s2v4h60ig72@ds011238.mongolab.com:11238/heroku_k99m6wnb')
-print('client connected')
-db = client.heroku_k99m6wnb
-tweets = db.tweets
+mongo_uri = os.environ.get('MONGOLAB_URI')
+if mongo_uri is not None:
+    client = MongoClient(mongo_uri)
+    print('client connected')
+    db = client.heroku_k99m6wnb
+    tweets = db.tweets
 
 
 def populate_from_flutrack_api():

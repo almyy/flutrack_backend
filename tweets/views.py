@@ -4,16 +4,19 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from tweets.models import Tweet
 from tweets.serializers import TweetSerializer
+import os
 
 
 @csrf_exempt
 @api_view(['GET'])
 def tweets(request):
-    client = MongoClient(
-        'mongodb://heroku_k99m6wnb:slu38scru44f1c5s2v4h60ig72@ds011238.mongolab.com:11238/heroku_k99m6wnb')
-    db = client.heroku_k99m6wnb
-    collection = db.tweets
-    cursor = collection.find()
+    mongo_uri = os.environ.get('MONGOLAB_URI')
+    if mongo_uri is not None:
+        client = MongoClient(mongo_uri)
+        print('client connected')
+        db = client.heroku_k99m6wnb
+        collection = db.tweets
+        cursor = collection.find()
 
     if request.method == 'GET':
         returned_tweets = []
