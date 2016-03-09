@@ -3,7 +3,7 @@
 import csv
 import matplotlib.pyplot as plt
 from prediction import airport
-from prediction import distribution_initiation
+from prediction import distribution_initiation as di
 
 city_matrix = airport.city_matrix
 length_of_incubation_period = 2  # tau1
@@ -11,8 +11,8 @@ length_of_infection_period = 8  # tau2
 daily_infectious_contact_rate = 1  # lambda #TODO Find a correct lambda value
 fraction_of_susceptible_population = 0.641  # alpha #TODO Find a correct alpha value
 fraction_of_newly_ill_reported = 0.99  # beta. #TODO Set a correct beta value
-infection_distribution = []
-city_list = []
+infection_distribution = di.init_distributions
+city_list = di.init_city_list()
 city_population_file = 'C:/Users/mikaelrs/Skole/Master/Repositories/flutrack_backend/' \
                        'prediction/data/citypopulation.csv'
 infection_distribution_file = 'C:/Users/mikaelrs/Skole/Master/Repositories/flutrack_backend/' \
@@ -249,9 +249,9 @@ class City:
 
 
 def main():
-    init_city_list()
+    # init_city_list()
     # Algorithm 1: Infection distribution DONE
-    init_distributions()
+    # init_distributions()
 
     # Algorithm 2: Local influenza
     index_city = city_list[14]

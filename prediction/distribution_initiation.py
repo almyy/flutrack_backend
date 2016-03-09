@@ -1,4 +1,5 @@
 import csv
+
 from prediction import distribute_city_population as temp
 
 city_population_file = 'C:/Users/mikaelrs/Skole/Master/Repositories/flutrack_backend/' \
