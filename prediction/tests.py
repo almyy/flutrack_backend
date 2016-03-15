@@ -112,11 +112,11 @@ class DistributionTestCase(unittest.TestCase):
         self.assertEqual(hong_kong.name, "Hong Kong", "Wrong city.")
 
         expected_susceptible = hong_kong.population * self.alpha
-        expected_latent = 74
-        expected_infectious = 81
+        expected_latent = 73
+        expected_infectious = 128
         expected_recovered = hong_kong.population - expected_susceptible - expected_latent - expected_infectious
 
-        hong_kong.get_latent_local(0, 4)
+        distribute_city_population.initiate_initial_conditions(0)
         hong_kong.calculate_state_equations_for_day(0, 0)
         self.assertEqual(hong_kong.susceptible, expected_susceptible, "Unexpected susceptible population.")
         self.assertEqual(hong_kong.latent, expected_latent, "Unexpected latent population.")
@@ -127,15 +127,15 @@ class DistributionTestCase(unittest.TestCase):
         hong_kong = distribute_city_population.city_list[14]
         self.assertEqual(hong_kong.name, 'Hong Kong', "Wrong city")
         hong_kong.calculate_state_equations_for_day(0, 0)
-        self.assertEqual(hong_kong.population, hong_kong.calculate_city_population(0), "Population does not match1")
+        self.assertEqual(hong_kong.population, hong_kong.calculate_city_population(), "Population does not match1")
         hong_kong.calculate_state_equations_for_day(0, 1)
-        self.assertEqual(hong_kong.population, hong_kong.calculate_city_population(1), "Population does not match2")
+        self.assertEqual(hong_kong.population, hong_kong.calculate_city_population(), "Population does not match2")
         hong_kong.calculate_state_equations_for_day(1, 1)
-        self.assertEqual(hong_kong.population, hong_kong.calculate_city_population(1), "Population does not match3")
+        self.assertEqual(hong_kong.population, hong_kong.calculate_city_population(), "Population does not match3")
         hong_kong.calculate_state_equations_for_day(1, 5)
-        self.assertEqual(hong_kong.population, hong_kong.calculate_city_population(5), "Population does not match4")
+        self.assertEqual(hong_kong.population, hong_kong.calculate_city_population(), "Population does not match4")
         hong_kong.calculate_state_equations_for_day(3, 5)
-        self.assertEqual(hong_kong.population, hong_kong.calculate_city_population(5), "Population does not match5")
+        self.assertEqual(hong_kong.population, hong_kong.calculate_city_population(), "Population does not match5")
 
 
 suite = unittest.TestLoader().loadTestsFromTestCase(AirportTestCase)

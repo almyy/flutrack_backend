@@ -16,7 +16,9 @@ Including another URLconf
 from django.conf.urls import url
 from django.contrib import admin
 from tweets.views import tweets
+from prediction.views import prediction
 
 urlpatterns = [
     url(r'^tweets/$', tweets, name='tweets'),
+    url(r'^prediction/$', prediction, name='prediction'),
 ]
