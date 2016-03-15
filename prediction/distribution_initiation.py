@@ -1,7 +1,7 @@
 import csv
 import os
 
-infection_distribution_file = os.path.abspath(os.path.dirname(__file__)) + 'data/infection_distribution.csv'
+infection_distribution_file = os.path.abspath(os.path.dirname(__file__)) + '/data/infection_distribution.csv'
 
 
 # Initiate the infection distribution matrix with default values from file
