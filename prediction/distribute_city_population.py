@@ -95,7 +95,7 @@ class City:
         for tau in range(0, length_of_infection_period + 1):
             if tau <= length_of_incubation_period:
                 lat += self.get_latent(tau, t)
-                print(lat)
+                print(str(tau) + ", " + str(t))
             inf += self.get_infectious(tau, t)
         self.latent = lat
         self.infectious = inf
