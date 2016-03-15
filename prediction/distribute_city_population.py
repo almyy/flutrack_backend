@@ -242,7 +242,8 @@ class City:
 
     def calculate_first_travel_day(self):
         temp_list = []
-        max_sigma = max(airport.city_matrix[self.index_id])
+        self.airport = airport
+        max_sigma = max(self.airport.city_matrix[self.index_id])
         for t in range(30):
             help_sum = 0
             for tau in range(0, length_of_incubation_period + 1):
