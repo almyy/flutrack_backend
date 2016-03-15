@@ -2,9 +2,10 @@ import csv
 import requests
 import json
 import random
+import os
 
 airport_file = 'data/airports.json'
-cities = '/app/prediction/data/cities.txt'
+cities = os.path.abspath(os.path.dirname(__file__)) + '/data/cities.txt'
 t100 = 'data/t100market.csv'
 chosen_airports = 'data/chosen_airports.csv'
 city_matrix = [[0] * 52 for x in range(52)]

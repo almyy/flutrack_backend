@@ -1,6 +1,9 @@
 # Distributes the city population in four explicit disjoint states,
 # Population p = x(t) + sum( u(tau,t),1, tau1) + sum(yi(tau,t),0,tau2) + z(t)
-import csv, json
+import csv
+import json
+import os
+
 from prediction import airport
 from prediction.distribution_initiation import init_distributions
 
