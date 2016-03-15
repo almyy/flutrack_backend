@@ -64,8 +64,9 @@ target/
 #Ipython Notebook
 .ipynb_checkpoints
 
-*.csv
-*.txt
+twitter_analysis/data/
+twitter_analysis/sampleTweets.csv
+sampleTweets.csv
 
 config.ini
 
