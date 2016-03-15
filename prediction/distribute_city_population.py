@@ -148,8 +148,11 @@ class City:
                         else:
                             help_sum += self.get_latent_boundary(t - i) * get_infectious_g(i)
                             print('latent: ' + str(self.get_latent_boundary(t-i)) + ", Infectious: " + str(get_infectious_g(i)))
+
                         # This will always be 0 for all other cities than the index city. Needs to be modeled locally. ???????
-                    self.lat_res[0, t] = int(factor * help_sum)
+                    help_int = int(factor * help_sum)
+                    print(help_int)
+                    self.lat_res[0, t] = help_int
                 else:
                     part_one = (1 - latent_becomes_infectious(tau - 1))
                     part_two = self.apply_transport_operator(t - 1, City.get_latent, tau=(tau - 1))
