@@ -286,10 +286,8 @@ def forecast(index_city, day):
         for city in city_list:
             data.append(city.calculate_state_equations_for_day(0, t))
         forecast_object.append(data)
-    json_data = json.dumps(forecast_object[:day], ensure_ascii=True)
     return forecast_object[:day]
 
-# print(forecast(14, 5))
 #
 #
 # def main():
