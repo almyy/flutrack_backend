@@ -141,7 +141,7 @@ class City:
             if (tau, t) not in self.lat_res:
                 if tau == 0:
                     factor = daily_infectious_contact_rate * self.get_susceptible(t) / self.population
-                    print(factor)
+                    print(str(daily_infectious_contact_rate) + ", " + str(self.get_susceptible(t)) + ", " + str(self.population))
                     help_sum = 0
                     for i in range(1, length_of_infection_period + 1):
                         if (tau, t - i) in self.lat_res:
