@@ -147,7 +147,7 @@ class City:
                             help_sum += self.lat_res[tau, t - i] * get_infectious_g(i)
                         else:
                             help_sum += self.get_latent_boundary(t - i) * get_infectious_g(i)
-                            print('latent: ' + str(self.get_latent_boundary(t-i) + ", Infectious: " + get_infectious_g(i)))
+                            print('latent: ' + str(self.get_latent_boundary(t-i)) + ", Infectious: " + str(get_infectious_g(i)))
                         # This will always be 0 for all other cities than the index city. Needs to be modeled locally. ???????
                     self.lat_res[0, t] = int(factor * help_sum)
                 else:
