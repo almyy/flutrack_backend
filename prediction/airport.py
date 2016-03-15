@@ -4,7 +4,7 @@ import json
 import random
 
 airport_file = 'data/airports.json'
-cities = 'data/cities.txt'
+cities = '/app/prediction/data/cities.txt'
 t100 = 'data/t100market.csv'
 chosen_airports = 'data/chosen_airports.csv'
 city_matrix = [[0] * 52 for x in range(52)]
