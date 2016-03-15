@@ -290,7 +290,7 @@ def forecast(index_city, day):
     json_data = json.dumps(forecast_object[:day], ensure_ascii=True)
     return forecast_object[:day]
 
-print(forecast(14, 5))
+# print(forecast(14, 5))
 #
 #
 # def main():
