@@ -1,6 +1,6 @@
 import codecs
 import tweepy
-# import carmen
+import carmen
 import json
 import configparser
 from max_ent_classifier import MaxEntClassifier
@@ -32,11 +32,11 @@ class FluStreamListener(tweepy.StreamListener):
     status_count_retweet = 0
     previous_status_text = ""
     status_history = []
+    resolver = carmen.get_resolver()
+    resolver.load_locations()
 
     def on_status(self, status):
-        print("awareness: " + str(classifier.classify_awareness(status.text)) + ", related: " + str(
-                classifier.classify_related(status.text)) + '\t' + str(
-                helper.process_tweet(status.text).encode('utf-8')))
+        print(self.resolver.resolve_tweet(status))
 
     def on_error(self, status_code):
         print(str(status_code))
@@ -99,4 +99,4 @@ def get_tweets_from_rest():
 
 
 if __name__ == '__main__':
-    get_tweets_from_rest()
+    stream_tweets()
