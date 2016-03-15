@@ -130,6 +130,6 @@ USE_TZ = True
 STATIC_URL = '/app/static/'
 STATIC_ROOT = 'static/'
 
-TEMPLATE_DIRS = (
+TEMPLATE_DIRS = [
     root('templates')
-)
+]
