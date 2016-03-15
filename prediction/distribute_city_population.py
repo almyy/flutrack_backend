@@ -95,7 +95,6 @@ class City:
         for tau in range(0, length_of_infection_period + 1):
             if tau <= length_of_incubation_period:
                 lat += self.get_latent(tau, t)
-                print(self.lat_res)
             inf += self.get_infectious(tau, t)
         self.latent = lat
         self.infectious = inf
@@ -147,6 +146,7 @@ class City:
                         if (tau, t - i) in self.lat_res:
                             help_sum += self.lat_res[tau, t - i] * get_infectious_g(i)
                         else:
+                            print("Send help")
                             help_sum += self.get_latent_boundary(t - i) * get_infectious_g(i)
                         # This will always be 0 for all other cities than the index city. Needs to be modeled locally. ???????
                     self.lat_res[0, t] = int(factor * help_sum)
