@@ -3,10 +3,10 @@ import requests
 import json
 import random
 
-airport_file = 'C:/Users/mikaelrs/Skole/Master/Repositories/flutrack_backend/prediction/data/airports.json'
-cities = 'C:/Users/mikaelrs/Skole/Master/Repositories/flutrack_backend/prediction/data/cities.txt'
-t100 = 'C:/Users/mikaelrs/Skole/Master/Repositories/flutrack_backend/prediction/data/t100market.csv'
-chosen_airports = 'C:/Users/mikaelrs/Skole/Master/Repositories/flutrack_backend/prediction/data/chosen_airports.csv'
+airport_file = 'data/airports.json'
+cities = 'data/cities.txt'
+t100 = 'data/t100market.csv'
+chosen_airports = 'data/chosen_airports.csv'
 city_matrix = [[0] * 52 for x in range(52)]
 city_list = []
 

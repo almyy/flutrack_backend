@@ -7,8 +7,7 @@ from prediction.distribution_initiation import init_distributions
 city_matrix = airport.city_matrix
 infection_distribution = init_distributions()
 city_list = []
-city_population_file = 'C:/Users/mikaelrs/Skole/Master/Repositories/flutrack_backend/' \
-                       'prediction/data/citypopulation.csv'
+city_population_file = 'data/citypopulation.csv'
 
 length_of_incubation_period = 2  # tau1
 length_of_infection_period = 8  # tau2
@@ -287,7 +286,7 @@ def forecast(index_city, day):
     json_data = json.dumps(forecast_object[:day], ensure_ascii=True)
     return forecast_object[:day]
 
-
+print(forecast(14, 5))
 #
 #
 # def main():

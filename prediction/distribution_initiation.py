@@ -1,7 +1,6 @@
 import csv
 
-infection_distribution_file = 'C:/Users/mikaelrs/Skole/Master/Repositories/flutrack_backend/' \
-                              'prediction/data/infection_distribution.csv'
+infection_distribution_file = 'data/infection_distribution.csv'
 
 
 # Initiate the infection distribution matrix with default values from file
