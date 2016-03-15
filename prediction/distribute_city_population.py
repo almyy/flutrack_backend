@@ -141,15 +141,15 @@ class City:
             if (tau, t) not in self.lat_res:
                 if tau == 0:
                     factor = daily_infectious_contact_rate * self.get_susceptible(t) / self.population
-                    print(self.get_susceptible(t))
+                    print(factor)
                     help_sum = 0
                     for i in range(1, length_of_infection_period + 1):
                         if (tau, t - i) in self.lat_res:
                             help_sum += self.lat_res[tau, t - i] * get_infectious_g(i)
                         else:
                             help_sum += self.get_latent_boundary(t - i) * get_infectious_g(i)
-                            print('latent: ' + str(self.get_latent_boundary(t-i)) + ", Infectious: " + str(get_infectious_g(i)))
 
+                    print(help_sum)
                         # This will always be 0 for all other cities than the index city. Needs to be modeled locally. ???????
                     help_int = int(factor * help_sum)
                     self.lat_res[0, t] = help_int
