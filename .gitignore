@@ -68,3 +68,6 @@ target/
 *.txt
 
 config.ini
+
+.ipython/
+.python_history

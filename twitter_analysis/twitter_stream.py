@@ -1,16 +1,19 @@
 import codecs
 import tweepy
-import re
+import carmen
+import json
 import configparser
 from max_ent_classifier import MaxEntClassifier
 from classifier_helper import ClassifierHelper
 
-f = codecs.open('sampleTweets.csv', 'w', encoding='utf-8')
-classifier = MaxEntClassifier(stop_words_file='data/stopwords.txt', related_training_data_file='data/training_data.csv', awareness_training_data_file='data/training_data_awareness_v2.csv',
-                              needs_training=False, related_classifier_dump_file='data/classifier_dump.pickle',
-                              awareness_classifier_dump_file='data/awareness_nb_classifier_dump.pickle',
-                              feature_list_file='data/feature_list.txt')
-helper = ClassifierHelper()
+
+# f = codecs.open('sampleTweets.csv', 'w', encoding='utf-8')
+# classifier = MaxEntClassifier(stop_words_file='data/stopwords.txt', related_training_data_file='data/training_data.csv',
+#                               awareness_training_data_file='data/training_data_awareness_v2.csv',
+#                               needs_training=False, related_classifier_dump_file='data/classifier_dump.pickle',
+#                               awareness_classifier_dump_file='data/awareness_nb_classifier_dump.pickle',
+#                               feature_list_file='data/feature_list.txt')
+# helper = ClassifierHelper()
 
 
 def filter_tweet(status):
@@ -29,10 +32,11 @@ class FluStreamListener(tweepy.StreamListener):
     status_count_retweet = 0
     previous_status_text = ""
     status_history = []
+    resolver = carmen.get_resolver()
+    resolver.load_locations()
 
     def on_status(self, status):
-        print("awareness: " + str(classifier.classify_awareness(status.text)) + ", related: " + str(
-            classifier.classify_related(status.text)) + '\t' + str(helper.process_tweet(status.text).encode('utf-8')))
+        print(self.resolver.resolve_tweet(status))
 
     def on_error(self, status_code):
         print(str(status_code))
@@ -67,8 +71,31 @@ def stream_tweets():
     data = ['fever sick', 'fever cough', 'flu sick', 'flu fever', 'runny nose', 'stuffed nose',
             'sick cough', 'fever cough', 'sore throat', 'headache fever', 'fatigued sick', 'fever tired',
             'vomiting flu', 'chills flu']
-
+    #
     stream.filter(track=machine_learning_data)
+
+
+def get_tweets_from_rest():
+    config = configparser.RawConfigParser()
+    config.read_file((open('../config.ini')))
+
+    consumer_key = config.get("Twitter", 'ConsumerKey')
+    consumer_secret = config.get("Twitter", 'ConsumerSecret')
+    access_token = config.get("Twitter", 'AccessToken')
+    access_token_secret = config.get("Twitter", 'AccessTokenSecret')
+
+    auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
+    auth.set_access_token(access_token, access_token_secret)
+
+    api = tweepy.API(auth)
+    # resolver = carmen.get_resolver()
+    # resolver.load_locations()
+    counter = 0
+    for status in tweepy.Cursor(api.search,
+                                q='flu+OR+chills+OR+sore+throat+OR+headache+OR+runny+nose+OR+vomiting+OR+sneazing+OR+fever+OR+diarrhea+OR+dry+cough').items():
+        print(json.dumps(status._json))
+        counter += 1
+    print(counter)
 
 
 if __name__ == '__main__':
