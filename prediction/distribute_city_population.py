@@ -88,7 +88,7 @@ class City:
 
     # Calculates all state equations for the city on the day in question. (7, 9 - 13).
     # The forecast is made over the time t0, t0 + 1, t0 + 2,..., t0 + T(forecast horizon)
-    def calculate_state_equations_for_day(self, tau, t):
+    def calculate_state_equations_for_day(self, t):
         self.susceptible = self.get_susceptible(t)
         inf = 0
         lat = 0
@@ -284,11 +284,9 @@ def forecast(index_city, day):
             break
         data = []
         for city in city_list:
-            data.append(city.calculate_state_equations_for_day(0, t))
+            data.append(city.calculate_state_equations_for_day(t))
         forecast_object.append(data)
     return forecast_object[:day]
-
-#
 #
 # def main():
 #     test_o_i_i = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 12, 8]
