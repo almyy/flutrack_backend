@@ -3,7 +3,8 @@
 import csv
 import json
 import os
-
+import copy
+from pymongo import MongoClient
 from prediction import airport
 from prediction.distribution_initiation import init_distributions
 
@@ -19,15 +20,25 @@ fraction_of_susceptible_population = 0.641  # alpha #TODO Find a correct alpha v
 fraction_of_newly_ill_reported = 0.99  # beta. #TODO Set a correct beta value
 forecast_horizon = 440  # T
 
+mongo_uri = os.environ.get('MONGOLAB_URI')
+if mongo_uri:
+    client = MongoClient(mongo_uri)
+    print('Connected to MongoDB')
+    db = client.heroku_k99m6wnb
+    cities = db.cities
+else:
+    print('Failed to connect to DB')
+
 
 def init_city_list():
-    with open(city_population_file) as csvfile:
-        reader = csv.reader(csvfile)
-        index = 0
-        for row in reader:
-            city_list.append(City(index, row[0], float(row[1])))
-            index += 1
-
+    if len(city_list) == 0:
+        with open(city_population_file) as csvfile:
+            reader = csv.reader(csvfile)
+            index = 0
+            for row in reader:
+                city_list.append(City(index, row[0], float(row[1])))
+                index += 1
+                print(index)
 
 # return f(time) (2)
 def get_latent_f(t):
@@ -99,7 +110,8 @@ class City:
         self.latent = lat
         self.infectious = inf
         self.recovered = self.population - (self.susceptible + lat + inf)
-        visualizable_object = {'City': self.name, 'Susceptible': self.susceptible, 'Latent': lat, 'Infectious': inf, 'Population': self.population}
+        # location = cities.find({'city': self.name}).next()['location']
+        visualizable_object = {'city': self.name, 'susceptible': self.susceptible, 'latent': lat, 'infectious': inf, 'population': self.population, 'location': cities.find({'city': self.name}).next()['location']}
         return visualizable_object
 
     # Transport operator omega for the travel matrix (8)
@@ -141,7 +153,6 @@ class City:
             if (tau, t) not in self.lat_res:
                 if tau == 0:
                     factor = daily_infectious_contact_rate * self.get_susceptible(t) / float(self.population)
-                    print(factor)
                     help_sum = 0
                     for i in range(1, length_of_infection_period + 1):
                         if (tau, t - i) in self.lat_res:
@@ -149,11 +160,8 @@ class City:
                         else:
                             help_sum += self.get_latent_boundary(t - i) * get_infectious_g(i)
 
-                    print(help_sum)
                         # This will always be 0 for all other cities than the index city. Needs to be modeled locally. ???????
-                    help_int = int(factor * help_sum)
-                    print(help_int)
-                    self.lat_res[0, t] = help_int
+                    self.lat_res[0, t] = int(factor * help_sum)
                 else:
                     part_one = (1 - latent_becomes_infectious(tau - 1))
                     part_two = self.apply_transport_operator(t - 1, City.get_latent, tau=(tau - 1))
@@ -275,8 +283,8 @@ class City:
                " \t z: " + str(self.recovered)
 
 
-
 def forecast(index_city, day):
+    print(str(index_city) + ', day: ' + str(day))
     init_city_list()
     City.index_city_id = index_city
     initial_city = city_list[index_city]
@@ -285,15 +293,18 @@ def forecast(index_city, day):
     initiate_initial_conditions(first_travel_day_of_latent_individual)
 
     forecast_object = []
-    for t in range(0, day):
+    syrecopy = []
+    for t in range(0, day + 1):
         if day > forecast_horizon:
             break
         data = []
         for city in city_list:
             data.append(city.calculate_state_equations_for_day(0, t))
+            # cities.find({'city': city.name}).next()['location']
+            print(data)
+
         forecast_object.append(data)
-    json_data = json.dumps(forecast_object[:day], ensure_ascii=True)
-    return forecast_object[:day]
+    return forecast_object
 
 # print(forecast(14, 5))
 #
