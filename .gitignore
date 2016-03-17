@@ -69,6 +69,7 @@ twitter_analysis/sampleTweets.csv
 sampleTweets.csv
 
 config.ini
-
+*/_netrc
+_netrc
 .ipython/
 .python_history
