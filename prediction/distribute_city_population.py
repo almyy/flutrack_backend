@@ -1,9 +1,8 @@
 # Distributes the city population in four explicit disjoint states,
 # Population p = x(t) + sum( u(tau,t),1, tau1) + sum(yi(tau,t),0,tau2) + z(t)
-import csv
-import json
+
 import os
-import copy
+import pprint
 from pymongo import MongoClient
 from prediction import airport
 from prediction.distribution_initiation import init_distributions
@@ -32,13 +31,10 @@ else:
 
 def init_city_list():
     if len(city_list) == 0:
-        with open(city_population_file) as csvfile:
-            reader = csv.reader(csvfile)
-            index = 0
-            for row in reader:
-                city_list.append(City(index, row[0], float(row[1])))
-                index += 1
-                print(index)
+        index = 0
+        for doc in cities.find():
+            city_list.append(City(index, doc['city'], doc['population'], doc['location']))
+            index += 1
 
 # return f(time) (2)
 def get_latent_f(t):
@@ -84,7 +80,7 @@ def initiate_initial_conditions(t):
 class City:
     index_city_id = 0
 
-    def __init__(self, index_id, name, population):
+    def __init__(self, index_id, name, population, location):
         self.index_id = index_id
         self.name = name
         self.population = int(population)
@@ -96,6 +92,7 @@ class City:
         self.sus_res = {}
         self.lat_res = {}
         self.inf_res = {}
+        self.location = location
 
     # Calculates all state equations for the city on the day in question. (7, 9 - 13).
     # The forecast is made over the time t0, t0 + 1, t0 + 2,..., t0 + T(forecast horizon)
@@ -110,8 +107,9 @@ class City:
         self.latent = lat
         self.infectious = inf
         self.recovered = self.population - (self.susceptible + lat + inf)
-        # location = cities.find({'city': self.name}).next()['location']
-        visualizable_object = {'city': self.name, 'susceptible': self.susceptible, 'latent': lat, 'infectious': inf, 'population': self.population, 'location': cities.find({'city': self.name}).next()['location']}
+        if self.name == 'New York':
+            print(inf)
+        visualizable_object = {'city': self.name, 'susceptible': self.susceptible, 'latent': lat, 'infectious': inf, 'population': self.population, 'location': self.location}
         return visualizable_object
 
     # Transport operator omega for the travel matrix (8)
@@ -300,9 +298,6 @@ def forecast(index_city, day):
         data = []
         for city in city_list:
             data.append(city.calculate_state_equations_for_day(0, t))
-            # cities.find({'city': city.name}).next()['location']
-            print(data)
-
         forecast_object.append(data)
     return forecast_object
 
