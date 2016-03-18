@@ -9,7 +9,8 @@ if mongo_uri:
     client = MongoClient(mongo_uri)
     print('client connected')
     db = client.heroku_k99m6wnb
-    tweets = db.tweets
+    cities = db.cities
+
 else:
     client = MongoClient('mongodb://localhost:27017/')
     db = client.flutrack
@@ -36,6 +37,19 @@ def populate_from_json(data):
         })
 
 
+def populate_from_txt(file):
+
+    with open(file) as f:
+        for row in f:
+            row = row.split(sep=',')
+            json = requests.get('https://maps.googleapis.com/maps/api/geocode/json', {'key': os.environ.get('GEOLOCATION_KEY'), 'address': row[0]}).json()
+            cities.insert({
+                'city': row[0],
+                'location': json['results'][0]['geometry']['location'],
+                'population': row[1].strip('\n')
+            })
+
+
 def lookup_city(lat, lng):
     params = {
         'format': 'json',
@@ -53,4 +67,5 @@ def __main__():
     populate_from_flutrack_api()
 
 
-__main__()
+if __name__ == '__main__':
+    populate_from_txt('../prediction/data/citypopulation.csv')
