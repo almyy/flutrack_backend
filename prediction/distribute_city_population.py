@@ -94,7 +94,7 @@ class City:
     def __init__(self, index_id, name, population, location):
         self.index_id = index_id
         self.name = name
-        self.population = int(population)
+        self.population = float(population)
         self.susceptible = 0
         self.latent = 0
         self.infectious = 0
@@ -163,7 +163,7 @@ class City:
         if length_of_incubation_period >= tau >= 0:
             if (tau, t) not in self.lat_res:
                 if tau == 0:
-                    factor = daily_infectious_contact_rate * self.get_susceptible(t, local=False) / float(self.population)
+                    factor = daily_infectious_contact_rate * self.get_susceptible(t, local=False) / self.population
                     help_sum = 0
                     for i in range(1, length_of_infection_period + 1):
                         if (tau, t - i) in self.lat_res:
@@ -301,13 +301,9 @@ def forecast(index_city, day):
     for u in range(208, 0):
         observed_ind.append(u * 3)
     print(time.strptime(str(initial_city.align_local_and_global_times(observed_ind)), "%j"))
-
-
-
     print("Aligned start: " + str(initial_city.align_local_and_global_times(observed_ind)))
     first_travel_day_of_latent_individual = initial_city.calculate_first_travel_day()
     initiate_initial_conditions(first_travel_day_of_latent_individual)
-    print("Suqa" + str(first_travel_day_of_latent_individual))
     forecast_object = []
     for t in range(0, day):
         if day > forecast_horizon:
@@ -317,7 +313,6 @@ def forecast(index_city, day):
             data.append(city.calculate_state_equations_for_day(t))
         forecast_object.append(data)
     return forecast_object
-
 
 test = forecast(14, 60)
 for day in test:
