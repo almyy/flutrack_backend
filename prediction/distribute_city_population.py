@@ -280,7 +280,7 @@ def forecast(index_city, day):
     for i in range(0, 209):
         observed_ind.append(i * 4)
     for u in range(208, 0):
-        observed_ind.append(i * 3)
+        observed_ind.append(u * 3)
     print(time.strptime(str(initial_city.align_local_and_global_times(observed_ind)), "%j"))
 
 
@@ -288,7 +288,7 @@ def forecast(index_city, day):
     print("Aligned start: " + str(initial_city.align_local_and_global_times(observed_ind)))
     first_travel_day_of_latent_individual = initial_city.calculate_first_travel_day()
     initiate_initial_conditions(first_travel_day_of_latent_individual)
-
+    print("Suqa" + str(first_travel_day_of_latent_individual))
     forecast_object = []
     for t in range(0, day):
         if day > forecast_horizon:
