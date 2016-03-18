@@ -1,8 +1,8 @@
 # Distributes the city population in four explicit disjoint states,
 # Population p = x(t) + sum( u(tau,t),1, tau1) + sum(yi(tau,t),0,tau2) + z(t)
 import csv
-import json
 import os
+import time
 
 from prediction import airport
 from prediction.distribution_initiation import init_distributions
@@ -99,7 +99,8 @@ class City:
         self.latent = lat
         self.infectious = inf
         self.recovered = self.population - (self.susceptible + lat + inf)
-        visualizable_object = {'City': self.name, 'Susceptible': self.susceptible, 'Latent': lat, 'Infectious': inf, 'Population': self.population}
+        visualizable_object = {'City': self.name, 'Susceptible': self.susceptible, 'Latent': lat, 'Infectious': inf,
+                               'Population': self.population}
         return visualizable_object
 
     # Transport operator omega for the travel matrix (8)
@@ -107,10 +108,12 @@ class City:
         help_sum = 0
         for j in range(len(city_matrix)):
             if not kwargs:
-                first_part = (input_function(city_list[j], t) * city_matrix[j][self.index_city_id]) / city_list[j].population
+                first_part = (input_function(city_list[j], t) * city_matrix[j][self.index_city_id]) / city_list[
+                    j].population
                 second_part = (input_function(self, t) * city_matrix[self.index_city_id][j]) / self.population
             else:
-                first_part = (input_function(city_list[j], kwargs.get('tau'), t) * city_matrix[j][self.index_city_id]) / city_list[j].population
+                first_part = (input_function(city_list[j], kwargs.get('tau'), t) * city_matrix[j][self.index_city_id]) / \
+                             city_list[j].population
                 second_part = (input_function(self, kwargs.get('tau'), t) * city_matrix[self.index_city_id][
                     j]) / self.population
             help_sum += first_part - second_part
@@ -147,7 +150,7 @@ class City:
                             help_sum += self.lat_res[tau, t - i] * get_infectious_g(i)
                         else:
                             help_sum += self.get_latent_boundary(t - i) * get_infectious_g(i)
-                        # This will always be 0 for all other cities than the index city. Needs to be modeled locally. ???????
+                            # This will always be 0 for all other cities than the index city. Needs to be modeled locally. ???????
                     self.lat_res[0, t] = int(factor * help_sum)
                 else:
                     part_one = (1 - latent_becomes_infectious(tau - 1))
@@ -193,7 +196,6 @@ class City:
     def modeled_number_of_new_ill_individuals(self, t):
         return int(fraction_of_newly_ill_reported * self.calculate_daily_morbidity(t))
 
-
     # Calculates the number of latent individuals on day date who were infected on day date - tau. (15)
     def get_latent_local(self, t):
         if (0, t) not in self.lat_res:
@@ -202,7 +204,8 @@ class City:
                 # Calculate MU here. Not sure how
             else:
                 if t not in self.sus_res:
-                    factor = (fraction_of_susceptible_population * self.get_susceptible(t, local=True)) / self.population
+                    factor = (
+                             fraction_of_susceptible_population * self.get_susceptible(t, local=True)) / self.population
                 else:
                     factor = (fraction_of_susceptible_population * self.sus_res[t]) / self.population
                 help_sum = 0
@@ -214,7 +217,6 @@ class City:
                 self.lat_res[0, t] = int(factor * help_sum)
         return self.lat_res[0, t]
 
-
     # Calculates the modeled number of of new ill individuals reported to the health registry on day date (16)
     def get_computed_new_sick_individuals_local(self, t):
         help_sum = 0
@@ -225,6 +227,7 @@ class City:
     # Compares a_i0(t) with b_i0(t) to find the initial date of the epidemic in city i_0.
     def align_local_and_global_times(self, observed_ill_individuals):
         t_max = observed_ill_individuals.index(max(observed_ill_individuals))
+        print(t_max)
         t = 0
         last_max = -1
         current_max = self.get_computed_new_sick_individuals_local(t)
@@ -234,7 +237,6 @@ class City:
             current_max = self.get_computed_new_sick_individuals_local(t)
         t_hat_max = t - 1
         return t_max - t_hat_max
-
 
     # Initializes the pandemic process. This is defined as the first day at which at least one latent individual travels
     # from city i_0 to another directly connected city. (23)
@@ -269,12 +271,21 @@ class City:
                " \t z: " + str(self.recovered)
 
 
-
 def forecast(index_city, day):
     init_city_list()
     City.index_city_id = index_city
     initial_city = city_list[index_city]
 
+    observed_ind = []
+    for i in range(0, 209):
+        observed_ind.append(i * 4)
+    for u in range(208, 0):
+        observed_ind.append(i * 3)
+    print(time.strptime(str(initial_city.align_local_and_global_times(observed_ind)), "%j"))
+
+
+
+    print("Aligned start: " + str(initial_city.align_local_and_global_times(observed_ind)))
     first_travel_day_of_latent_individual = initial_city.calculate_first_travel_day()
     initiate_initial_conditions(first_travel_day_of_latent_individual)
 
@@ -286,7 +297,15 @@ def forecast(index_city, day):
         for city in city_list:
             data.append(city.calculate_state_equations_for_day(t))
         forecast_object.append(data)
+
     return forecast_object[:day]
+
+
+test = forecast(14, 60)
+for day in test:
+    for obj in day:
+        if obj['City'] == 'Hong Kong':
+            print(obj)
 #
 # def main():
 #     test_o_i_i = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 12, 8]
