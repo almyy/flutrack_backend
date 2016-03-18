@@ -2,6 +2,7 @@
 # Population p = x(t) + sum( u(tau,t),1, tau1) + sum(yi(tau,t),0,tau2) + z(t)
 
 import os
+import csv
 import pprint
 from pymongo import MongoClient
 from prediction import airport
@@ -20,21 +21,31 @@ fraction_of_newly_ill_reported = 0.99  # beta. #TODO Set a correct beta value
 forecast_horizon = 440  # T
 
 mongo_uri = os.environ.get('MONGOLAB_URI')
+
 if mongo_uri:
     client = MongoClient(mongo_uri)
     print('Connected to MongoDB')
     db = client.heroku_k99m6wnb
     cities = db.cities
 else:
-    print('Failed to connect to DB')
+    cities = 0
+    print('Couldnt connect to DB')
 
 
 def init_city_list():
-    if len(city_list) == 0:
-        index = 0
-        for doc in cities.find():
-            city_list.append(City(index, doc['city'], doc['population'], doc['location']))
-            index += 1
+    if cities is not 0:
+        if len(city_list) == 0:
+            index = 0
+            for doc in cities.find():
+                city_list.append(City(index, doc['city'], doc['population'], doc['location']))
+                index += 1
+    else:
+        with open(city_population_file) as csvfile:
+            reader = csv.reader(csvfile)
+            index = 0
+            for row in reader:
+                city_list.append(City(index, row[0], float(row[1]), {}))
+                index += 1
 
 # return f(time) (2)
 def get_latent_f(t):
@@ -107,7 +118,7 @@ class City:
         self.latent = lat
         self.infectious = inf
         self.recovered = self.population - (self.susceptible + lat + inf)
-        if self.name == 'New York':
+        if self.name == 'Hong Kong':
             print(inf)
         visualizable_object = {'city': self.name, 'susceptible': self.susceptible, 'latent': lat, 'infectious': inf, 'population': self.population, 'location': self.location}
         return visualizable_object
@@ -213,9 +224,9 @@ class City:
                 # Calculate MU here. Not sure how
             else:
                 if t not in self.sus_res:
-                    factor = (fraction_of_susceptible_population * self.get_susceptible(t, local=True)) / self.population
+                    factor = (fraction_of_susceptible_population * self.get_susceptible(t, local=True)) / float(self.population)
                 else:
-                    factor = (fraction_of_susceptible_population * self.sus_res[t]) / self.population
+                    factor = (fraction_of_susceptible_population * self.sus_res[t]) / float(self.population)
                 help_sum = 0
                 for i in range(1, length_of_infection_period + 1):
                     if (0, t - i) in self.lat_res:
@@ -260,7 +271,7 @@ class City:
             for tau in range(0, length_of_incubation_period + 1):
                 test = get_latent_f(tau)
                 help_sum += test * 1.24 ** (-tau)
-            temp_list.append((self.get_latent_local(t) / self.population) * help_sum * max_sigma)
+            temp_list.append((self.get_latent_local(t) / float(self.population)) * help_sum * max_sigma)
         temp_list = [element for element in temp_list if element >= 1]
         if len(temp_list) >= 1:
             return temp_list.index(min(temp_list))
@@ -301,7 +312,11 @@ def forecast(index_city, day):
         forecast_object.append(data)
     return forecast_object
 
-# print(forecast(14, 5))
+test = forecast(14,60)
+for day in test:
+    for obj in day:
+        if obj['city'] == 'Hong Kong':
+            print(obj)
 #
 #
 # def main():
