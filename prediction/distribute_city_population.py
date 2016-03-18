@@ -287,6 +287,13 @@ def forecast(index_city, day):
             data.append(city.calculate_state_equations_for_day(t))
         forecast_object.append(data)
     return forecast_object[:day]
+
+test = forecast(14, 60)
+for day in test:
+    for obj in day:
+        if obj['City'] == 'Hong Kong':
+            print(obj)
+
 #
 # def main():
 #     test_o_i_i = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 12, 8]
