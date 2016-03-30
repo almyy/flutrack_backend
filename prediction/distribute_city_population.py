@@ -132,8 +132,10 @@ class City:
                     j].population
                 second_part = (input_function(self, t) * city_matrix[self.index_id][j]) / self.population
             else:
-                first_part = (input_function(city_list[j], kwargs.get('tau'), t) * city_matrix[j][self.index_id]) / city_list[j].population
-                second_part = (input_function(self, kwargs.get('tau'), t) * city_matrix[self.index_id][j]) / self.population
+                first_part = (input_function(city_list[j], kwargs.get('tau'), t) * city_matrix[j][self.index_id]) / \
+                             city_list[j].population
+                second_part = (input_function(self, kwargs.get('tau'), t) * city_matrix[self.index_id][
+                    j]) / self.population
             help_sum += first_part - second_part
         if not kwargs:
             return input_function(self, t) + help_sum
@@ -171,9 +173,9 @@ class City:
                                 help_sum += self.get_latent_boundary(t - i) * get_infectious_g(i)
                             else:
                                 help_sum += self.get_latent(tau, t - i) * get_infectious_g(i)
-                            # TODO Latent boundary should only apply to index city.
-                            # For all other cities, u(tau-1, t-1) should be instantiated by the transportation operator.
-                            # Needs to be cut off here, to make sure infinite recursion depth doesn't occur.
+                                # TODO Latent boundary should only apply to index city.
+                                # For all other cities, u(tau-1, t-1) should be instantiated by the transportation operator.
+                                # Needs to be cut off here, to make sure infinite recursion depth doesn't occur.
                     self.lat_res[0, t] = factor * help_sum
                 else:
                     part_one = (1 - latent_becomes_infectious(tau - 1))
@@ -191,7 +193,8 @@ class City:
         if tau <= 0:
             self.inf_res[tau, t] = 0
         elif tau <= length_of_incubation_period:
-            part_one = latent_becomes_infectious(tau - 1) * self.apply_transport_operator(t - 1, City.get_latent, tau=(tau - 1))
+            part_one = latent_becomes_infectious(tau - 1) * self.apply_transport_operator(t - 1, City.get_latent,
+                                                                                          tau=(tau - 1))
             if (tau - 1, t - 1) not in self.inf_res:
                 part_two = (1 - infectious_recovers(tau - 1)) * self.get_infectious(tau - 1, t - 1)
             else:
@@ -225,7 +228,8 @@ class City:
                 self.lat_res[0, t] = self.get_latent_boundary(t)
             else:
                 if t not in self.sus_res:
-                    factor = (fraction_of_susceptible_population * self.get_susceptible(t, local=True)) / self.population
+                    factor = (
+                             fraction_of_susceptible_population * self.get_susceptible(t, local=True)) / self.population
                 else:
                     factor = (fraction_of_susceptible_population * self.sus_res[t]) / self.population
                 help_sum = 0
@@ -303,8 +307,6 @@ def forecast(index_city, day):
         observed_ind.append(u * 3)
     print(time.strptime(str(initial_city.align_local_and_global_times(observed_ind)), "%j"))
 
-
-
     print("Aligned start: " + str(initial_city.align_local_and_global_times(observed_ind)))
     first_travel_day_of_latent_individual = initial_city.calculate_first_travel_day()
     initiate_initial_conditions(first_travel_day_of_latent_individual)
@@ -319,17 +321,19 @@ def forecast(index_city, day):
         forecast_object.append(data)
     return forecast_object
 
+
 def comparison_forecast(city):
     result = []
 
-    for t in range(1, 50):
+    for t in range(1, 80):
         sick_individuals = 0
         for i in range(1, 5):
-            sick_individuals += city.get_computed_new_sick_individuals_local(t + i) / 10**5
+            sick_individuals += city.get_computed_new_sick_individuals_local(t + i) / 10 ** 4
         print(str(t) + ": " + str(sick_individuals))
         result.append(sick_individuals)
 
     return result
+
 
 # init_city_list()
 # City.index_city_id = 14
@@ -343,11 +347,6 @@ def comparison_forecast(city):
 #         if obj['City'] == 'Hong Kong':
 #             print(obj)
 
-test = forecast(14, 60)
-for day in test:
-    for obj in day:
-        if obj['city'] == 'Hong Kong':
-            print(obj)
 #
 # def main():
 #     test_o_i_i = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 12, 8]
@@ -371,7 +370,7 @@ hong_kong = city_list[14]
 initiate_initial_conditions(hong_kong.calculate_first_travel_day())
 atlanta = city_list[0]
 wellington = city_list[30]
-print(comparison_forecast(atlanta))
+print(comparison_forecast(hong_kong))
 # for t in range(0, 100):
 #     hong_kong.calculate_state_equations_for_day(t)
 #     print(str(t) + ": " + str(hong_kong))
