@@ -1,9 +1,10 @@
 # Distributes the city population in four explicit disjoint states,
 # Population p = x(t) + sum( u(tau,t),1, tau1) + sum(yi(tau,t),0,tau2) + z(t)
-import csv
-import os
-import time
 
+import os
+import csv
+import time
+from pymongo import MongoClient
 from prediction import airport
 from prediction.distribution_initiation import init_distributions
 
@@ -19,14 +20,32 @@ fraction_of_susceptible_population = 0.641  # alpha #TODO Find a correct alpha v
 fraction_of_newly_ill_reported = 0.99  # beta. #TODO Set a correct beta value
 forecast_horizon = 440  # T
 
+mongo_uri = os.environ.get('MONGOLAB_URI')
+
+if mongo_uri:
+    client = MongoClient(mongo_uri)
+    print('Connected to MongoDB')
+    db = client.heroku_k99m6wnb
+    cities = db.cities
+else:
+    cities = 0
+    print('Couldnt connect to DB')
+
 
 def init_city_list():
-    with open(city_population_file) as csvfile:
-        reader = csv.reader(csvfile)
-        index = 0
-        for row in reader:
-            city_list.append(City(index, row[0], float(row[1])))
-            index += 1
+    if cities is not 0:
+        if len(city_list) == 0:
+            index = 0
+            for doc in cities.find():
+                city_list.append(City(index, doc['city'], doc['population'], doc['location']))
+                index += 1
+    else:
+        with open(city_population_file) as csvfile:
+            reader = csv.reader(csvfile)
+            index = 0
+            for row in reader:
+                city_list.append(City(index, row[0], float(row[1]), {}))
+                index += 1
 
 
 # return f(time) (2)
@@ -73,10 +92,10 @@ def initiate_initial_conditions(t):
 class City:
     index_city_id = 0
 
-    def __init__(self, index_id, name, population):
+    def __init__(self, index_id, name, population, location):
         self.index_id = index_id
         self.name = name
-        self.population = int(population)
+        self.population = float(population)
         self.susceptible = 0
         self.latent = 0
         self.infectious = 0
@@ -85,6 +104,7 @@ class City:
         self.sus_res = {}
         self.lat_res = {}
         self.inf_res = {}
+        self.location = location
 
     # Calculates all state equations for the city on the day in question. (7, 9 - 13).
     # The forecast is made over the time t0, t0 + 1, t0 + 2,..., t0 + T(forecast horizon)
@@ -297,9 +317,7 @@ def forecast(index_city, day):
         for city in city_list:
             data.append(city.calculate_state_equations_for_day(t))
         forecast_object.append(data)
-
-    return forecast_object[:day]
-
+    return forecast_object
 
 def comparison_forecast(city):
     result = []
@@ -325,6 +343,12 @@ def comparison_forecast(city):
 #         if obj['City'] == 'Hong Kong':
 #             print(obj)
 
+test = forecast(14, 60)
+for day in test:
+    for obj in day:
+        if obj['city'] == 'Hong Kong':
+            print(obj)
+#
 # def main():
 #     test_o_i_i = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 12, 8]
 #     # Algorithm 1: Infection distribution DONE.
