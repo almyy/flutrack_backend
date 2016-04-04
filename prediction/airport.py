@@ -1,16 +1,16 @@
 import csv
 import requests
 import json
-import random
+import xlrd
 import os
 
 airport_file = os.path.abspath(os.path.dirname(__file__)) + '/data/airports.json'
 cities = os.path.abspath(os.path.dirname(__file__)) + '/data/cities.txt'
 t100 = os.path.abspath(os.path.dirname(__file__)) + '/data/t100market.csv'
 chosen_airports = os.path.abspath(os.path.dirname(__file__)) + '/data/chosen_airports.csv'
+dummy_matrix_file = os.path.abspath(os.path.dirname(__file__)) + '/data/dummy_matrix.xlsx'
 city_matrix = [[0] * 52 for x in range(52)]
 city_list = []
-
 
 # Sort data from airport.api.aero on origin and destination airports.
 def sort_per_origin(list_input):
@@ -25,12 +25,6 @@ def sort_per_origin(list_input):
             current_origin[2] += int(float(row['PASSENGERS']))
     result.pop(0)
     return result
-
-
-def init_dummy_matrix():
-    for i in range(52):
-        for j in range(52):
-            city_matrix[i][j] = random.randint(100000, 2000000)
 
 
 # Initiate and sort the t100market database.
@@ -125,10 +119,23 @@ def init_city_travel_matrix(airports, data):
             city_matrix[origin_index][destination_index] += row[2]
 
 
+def create_dummy_matrix():
+    wkb = xlrd.open_workbook(dummy_matrix_file)
+    sheet = wkb.sheet_by_index(0)
+    _result = []
+
+    for row in range(1, sheet.nrows):
+        _row = []
+        for col in range(1, sheet.ncols):
+            _row.append(sheet.cell_value(row, col))
+        _result.append(_row)
+    return _result
+
 
 init_city_names()
 airports = map_airports_to_cities(init_city_dictionary(), get_flight_data_local())
 data = read_air_travel_data()
-init_city_travel_matrix(airports, data)
+# init_city_travel_matrix(airports, data)
+create_dummy_matrix()
 # print(city_matrix[14])
 # print("Passengers_between_ny_lax: " + str(get_passengers_between_cities("Los Angeles", "New York")))
