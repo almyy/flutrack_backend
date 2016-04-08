@@ -12,6 +12,7 @@ dummy_matrix_file = os.path.abspath(os.path.dirname(__file__)) + '/data/dummy_ma
 city_matrix = [[0] * 52 for x in range(52)]
 city_list = []
 
+
 # Sort data from airport.api.aero on origin and destination airports.
 def sort_per_origin(list_input):
     sorted_list = sorted(list_input, key=lambda k: (k['ORIGIN'], k['DEST']))
@@ -44,10 +45,6 @@ def get_flight_data():
     with open(airport_file, 'w') as f:
         json.dump(result_json, f)
     return result_json
-
-
-def get_desired_airport_codes():
-    pass
 
 
 # Get an instance of the queried flight data stored locally.
@@ -135,7 +132,4 @@ def create_dummy_matrix():
 init_city_names()
 airports = map_airports_to_cities(init_city_dictionary(), get_flight_data_local())
 data = read_air_travel_data()
-# init_city_travel_matrix(airports, data)
-create_dummy_matrix()
-# print(city_matrix[14])
-# print("Passengers_between_ny_lax: " + str(get_passengers_between_cities("Los Angeles", "New York")))
+init_city_travel_matrix(airports, data)

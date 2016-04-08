@@ -99,7 +99,7 @@ class DistributionTestCase(unittest.TestCase):
         self.assertEqual(distribute_city_population.get_removed_h(5), 0.70)
 
     def test_estimation_of_free_parameters(self):
-        expected_alpha = 0.6417
+        expected_alpha = 0.641
         expected_lambda = 1.055
         self.assertEqual(self.alpha, expected_alpha)
         self.assertEqual(self.llambda, expected_lambda)

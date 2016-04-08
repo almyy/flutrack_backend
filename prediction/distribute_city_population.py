@@ -86,8 +86,8 @@ def infectious_recovers(t):
 # Computes the initial conditions for all cities (24, 25, 26)
 def initiate_initial_conditions(t):
     for city in city_list:
+        city.sus_res[t] = city.population * fraction_of_susceptible_population
         if city.index_id == City.index_city_id:
-            city.sus_res[t] = fraction_of_susceptible_population * city.population
             for tau in range(length_of_infection_period + 1):
                 if tau <= length_of_incubation_period:
                     city.lat_res[tau, t] = get_latent_f(tau) * city.get_latent_local(t - tau)
@@ -155,13 +155,9 @@ class City:
                 second_part = func * mat
             help_sum += first_part - second_part
         if not kwargs:
-            result = input_function(self, t) + help_sum
-            # print(str(result) + " T: " + str(t))
-            return result
+            return input_function(self, t) + help_sum
         else:
-            result = input_function(self, kwargs.get('tau'), t) + help_sum
-            # print(str(result) + " TAU: " + str(kwargs.get('tau')) + " T: " + str(t))
-            return result
+            return input_function(self, kwargs.get('tau'), t) + help_sum
 
     # Returns the number of susceptible individuals for day t (9).
     def get_susceptible(self, t, **kwargs):
@@ -179,46 +175,13 @@ class City:
                 self.sus_res[t] = self.sus_res[t - 1] - self.lat_res[0, t - 1]
         return self.sus_res[t]
 
-    # Returns the number of infectious individuals on day t who where infected on day t-tau (10)
-    # def get_latent(self, tau, t):
-    #     if length_of_incubation_period >= tau >= 0:
-    #         if (tau, t) not in self.lat_res:
-    #             if tau == 0:
-    #                 factor = daily_infectious_contact_rate * self.get_susceptible(t, local=False) / self.population
-    #                 help_sum = 0
-    #                 for i in range(1, length_of_infection_period + 1):
-    #                     if (tau, t - i) in self.lat_res:
-    #                         help_sum += self.lat_res[tau, t - i] * get_infectious_g(i)
-    #                     else:
-    #                         # if self.index_id == City.index_city_id:
-    #                         #     help_sum += self.get_latent_boundary(t - i) * get_infectious_g(i)
-    #                         # else:
-    #                             if t < -10:
-    #                                 break
-    #                             help_sum += self.get_latent(tau, t - i) * get_infectious_g(i)
-    #                             # TODO Latent boundary should only apply to index city.
-    #                             # For all other cities, u(tau-1, t-1) should be instantiated by the transportation operator.
-    #                             # Needs to be cut off here, to make sure infinite recursion depth doesn't occur.
-    #                 self.lat_res[0, t] = factor * help_sum
-    #             else:
-    #                 part_one = (1 - latent_becomes_infectious(tau - 1))
-    #                 part_two = self.apply_transport_operator(t - 1, City.get_latent, tau=(tau - 1))
-    #                 self.lat_res[tau, t] = part_one * part_two
-    #     return self.lat_res[tau, t]
 
-
+    # (10) Returns the number of latent individuals on day t that were infected on day t-tau.
     def get_latent(self, tau, t):
         if t < 0:
             self.lat_res[tau, t] = 0
         if (tau, t) not in self.lat_res:
             if tau == 0:
-
-                # fraction = self.get_susceptible(t) * (daily_infectious_contact_rate / self.population)
-                # number_of_inf = 0
-                # for u in range(length_of_incubation_period, length_of_infection_period + 1):
-                #     number_of_inf += self.get_infectious(u, t)
-                # self.lat_res[tau, t] = number_of_inf * fraction
-
                 average_infected = (daily_infectious_contact_rate * self.get_susceptible(t)) / self.population
                 number_of_infectious = 0
                 for i in range(1, length_of_infection_period + 1):
@@ -286,18 +249,19 @@ class City:
                 self.lat_res[0, t] = factor * help_sum
         return self.lat_res[0, t]
 
+    # Calculates the modeled number of of new ill individuals reported to the health registry on day date (16)
+    def get_computed_new_sick_individuals_local(self, t):
+        help_sum = 0
+        for i in range(0, length_of_incubation_period + 1):
+            help_sum += (get_latent_f(i) - get_latent_f(i + 1)) * self.get_latent_local(t - i)
+        return help_sum * fraction_of_newly_ill_reported
+
+    # Local influenza (19)
     def local_influenza(self):
         for tau in range(0, length_of_infection_period + 1):
             self.lat_res[0, -tau] = 0.00001 * self.population * 1.24 ** (-tau)
         self.sus_res[0] = fraction_of_susceptible_population * self.population
     pass
-
-    # Calculates the modeled number of of new ill individuals reported to the health registry on day date (16)
-    def get_computed_new_sick_individuals_local(self, t):
-        help_sum = 0
-        for i in range(0, length_of_incubation_period):
-            help_sum += (get_latent_f(i) - get_latent_f(i + 1)) * self.get_latent(0, (t - i))
-        return help_sum * fraction_of_newly_ill_reported
 
     # Compares a_i0(t) with b_i0(t) to find the initial date of the epidemic in city i_0.
     def align_local_and_global_times(self, observed_ill_individuals):
@@ -320,7 +284,7 @@ class City:
     def calculate_first_travel_day(self):
         temp_list = []
         max_sigma = max(city_matrix[self.index_id])
-        for t in range(440):
+        for t in range(50):
             help_sum = 0
             for tau in range(0, length_of_incubation_period + 1):
                 test = get_latent_f(tau)
@@ -365,7 +329,7 @@ def forecast(index_city, day):
         data = []
         for city in city_list:
             help_data = city.calculate_state_equations_for_day(t)
-            print(help_data)
+            # print(help_data)
             data.append(help_data)
         forecast_object.append(data)
     return forecast_object
@@ -373,12 +337,19 @@ def forecast(index_city, day):
 
 def comparison_forecast(city):
     result = []
+    t = 0
+    counter = 0
+    sick_individuals = 0
+    while counter < 50:
+        if t == 4:
+            print(str(counter) + ": " + str(int(sick_individuals * 10 ** (-5))))
+            result.append(int(sick_individuals * 0.0001))
+            sick_individuals = 0
+            t = 0
+            counter += 1
+        sick_individuals += city.modeled_number_of_new_ill_individuals((4 * counter) + t)
 
-    for t in range(1, 80):
-        sick_individuals = 0
-        sick_individuals += city.get_computed_new_sick_individuals_local(t)
-        print(str(t) + ": " + str(sick_individuals))
-        result.append(sick_individuals)
+        t += 1
 
     return result
 
@@ -391,19 +362,16 @@ City.index_city_id = 9
 hong_kong = city_list[9]
 hong_kong.local_influenza()
 
-
-wellington = city_list[41]
-new_york = city_list[43]
 first_travel_day = hong_kong.calculate_first_travel_day()
-print(first_travel_day)
 initiate_initial_conditions(0)
+# forecast(9, 10)
+
+new_york = city_list[33]
+
 comparison_forecast(hong_kong)
-
-
-
-for i in range(0, 100):
-    hong_kong.calculate_state_equations_for_day(i)
-    # print(str(i) + ": " + str(hong_kong))
-    new_york.calculate_state_equations_for_day(i)
-    print(str(i) + ": " + str(hong_kong))
 #
+# for i in range(0, forecast_horizon):
+#     for city in city_list:
+#         city.calculate_state_equations_for_day(i)
+#     print(str(i) + ": " + str(new_york))
+# #
