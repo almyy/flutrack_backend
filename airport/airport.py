@@ -10,6 +10,7 @@ t100 = os.path.abspath(os.path.dirname(__file__)) + '/data/t100market.csv'
 chosen_airports = os.path.abspath(os.path.dirname(__file__)) + '/data/chosen_airports.csv'
 dummy_matrix_file = os.path.abspath(os.path.dirname(__file__)) + '/data/dummy_matrix.xlsx'
 city_list = []
+matrix_size = 52
 
 
 # Sort data from airport.api.aero on origin and destination airports.
@@ -53,6 +54,20 @@ def get_flight_data_local():
     return result
 
 
+# Initiate an alphabetical list of the cities used in the matrix.
+def init_city_names():
+    f = open(cities)
+    for line in f:
+        city_list.append(line.replace("\n", ""))
+    f.close()
+
+
+# Return the number of passengers that has travelled between two cities.
+# def get_passengers_between_cities(city1, city2):
+#     return city_matrix[city_list.index(city1)][city_list.index(city2)] + city_matrix[city_list.index(city2)][
+#         city_list.index(city1)]
+
+
 # Initiate a dictionary of matrix cities, with city name as key.
 def init_city_dictionary():
     res_dict = {}
@@ -61,14 +76,6 @@ def init_city_dictionary():
         res_dict[line.replace("\n", "")] = []
     f.close()
     return res_dict
-
-
-# Initiate an alphabetical list of the cities used in the matrix.
-def init_city_names():
-    f = open(cities)
-    for line in f:
-        city_list.append(line.replace("\n", ""))
-    f.close()
 
 
 # Map all belonging airports to a city in the dictionary.
@@ -80,17 +87,11 @@ def map_airports_to_cities(res_dict, api_lookup):
     return res_dict
 
 
-# Return the number of passengers that has travelled between two cities.
-# def get_passengers_between_cities(city1, city2):
-#     return city_matrix[city_list.index(city1)][city_list.index(city2)] + city_matrix[city_list.index(city2)][
-#         city_list.index(city1)]
-
-
 def get_city_index(airport_code, airports):
     for key in airports:
         if airport_code in airports[key]:
             return city_list.index(key)
-    return 0
+    return -1
 
 
 def write_airports_to_file(shortened):
@@ -102,7 +103,7 @@ def write_airports_to_file(shortened):
 
 # Initiate the matrix with travel data between the cities.
 def init_city_travel_matrix(airports, data):
-    city_matrix = [[0] * 52 for x in range(52)]
+    city_matrix = [[0] * matrix_size for x in range(matrix_size)]
     # TODO Implement the matrix to have travel data on a daily number of travelers between cities.
     shortened = []
     for key in airports:
@@ -117,6 +118,7 @@ def init_city_travel_matrix(airports, data):
     return city_matrix
 
 
+# Reading the matrix from Rvachev & Longini's original paper.
 def create_dummy_matrix():
     wkb = xlrd.open_workbook(dummy_matrix_file)
     sheet = wkb.sheet_by_index(0)
