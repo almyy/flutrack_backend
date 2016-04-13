@@ -1,14 +1,15 @@
 # Distributes the city population in four explicit disjoint states,
 # Population p = x(t) + sum( u(tau,t),1, tau1) + sum(yi(tau,t),0,tau2) + z(t)
 
-import os
 import csv
-import time
+import os
+
 from pymongo import MongoClient
-from prediction import airport
+
+from airport import airport
 from prediction.distribution_initiation import init_distributions
 
-city_matrix = airport.city_matrix
+city_matrix = airport.get_travel_matrix()
 infection_distribution = init_distributions()
 city_list = []
 city_population_file = os.path.abspath(os.path.dirname(__file__)) + '/data/citypopulation.csv'
@@ -165,17 +166,14 @@ class City:
             if t == 0:
                 self.sus_res[t] = self.population * fraction_of_susceptible_population
             else:
-                value = 0
                 if (0, t - 1) not in self.lat_res:
                     if kwargs.get('local'):
-                        value = self.get_latent_local(t - 1)
-                        # self.lat_res[0, t - 1] = self.get_latent_local(t - 1)
+                        self.lat_res[0, t - 1] = self.get_latent_local(t - 1)
                     else:
-                        value = self.get_latent(0, t - 1)
-                        # self.lat_res[0, t - 1] = self.get_latent(0, t - 1)
+                        self.lat_res[0, t - 1] = self.get_latent(0, t - 1)
                 if t - 1 not in self.sus_res:
                     self.sus_res[t - 1] = self.get_susceptible(t - 1)
-                self.sus_res[t] = self.sus_res[t - 1] - value
+                self.sus_res[t] = self.sus_res[t - 1] - self.lat_res[0, t - 1]
         return self.sus_res[t]
 
 

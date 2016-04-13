@@ -9,7 +9,6 @@ cities = os.path.abspath(os.path.dirname(__file__)) + '/data/cities.txt'
 t100 = os.path.abspath(os.path.dirname(__file__)) + '/data/t100market.csv'
 chosen_airports = os.path.abspath(os.path.dirname(__file__)) + '/data/chosen_airports.csv'
 dummy_matrix_file = os.path.abspath(os.path.dirname(__file__)) + '/data/dummy_matrix.xlsx'
-city_matrix = [[0] * 52 for x in range(52)]
 city_list = []
 
 
@@ -82,9 +81,9 @@ def map_airports_to_cities(res_dict, api_lookup):
 
 
 # Return the number of passengers that has travelled between two cities.
-def get_passengers_between_cities(city1, city2):
-    return city_matrix[city_list.index(city1)][city_list.index(city2)] + city_matrix[city_list.index(city2)][
-        city_list.index(city1)]
+# def get_passengers_between_cities(city1, city2):
+#     return city_matrix[city_list.index(city1)][city_list.index(city2)] + city_matrix[city_list.index(city2)][
+#         city_list.index(city1)]
 
 
 def get_city_index(airport_code, airports):
@@ -103,6 +102,7 @@ def write_airports_to_file(shortened):
 
 # Initiate the matrix with travel data between the cities.
 def init_city_travel_matrix(airports, data):
+    city_matrix = [[0] * 52 for x in range(52)]
     # TODO Implement the matrix to have travel data on a daily number of travelers between cities.
     shortened = []
     for key in airports:
@@ -114,6 +114,7 @@ def init_city_travel_matrix(airports, data):
             origin_index = get_city_index(row[0], airports)
             destination_index = get_city_index(row[1], airports)
             city_matrix[origin_index][destination_index] += row[2]
+    return city_matrix
 
 
 def create_dummy_matrix():
@@ -129,7 +130,10 @@ def create_dummy_matrix():
     return _result
 
 
+# Returns the city matrix needed for prediction
+def get_travel_matrix():
+    airports = map_airports_to_cities(init_city_dictionary(), get_flight_data_local())
+    data = read_air_travel_data()
+    return init_city_travel_matrix(airports, data)
+
 init_city_names()
-airports = map_airports_to_cities(init_city_dictionary(), get_flight_data_local())
-data = read_air_travel_data()
-init_city_travel_matrix(airports, data)
