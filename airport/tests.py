@@ -1,11 +1,12 @@
 import unittest
+import airport as apm
 
 
 class AirportTestCase(unittest.TestCase):
     def setUp(self):
-        self.city_names = airport.city_list
-        self.city_dictionary = airport.init_city_dictionary()
-        self.city_matrix = airport.city_matrix
+        self.city_names = apm.city_list
+        self.city_dictionary = apm.init_city_dictionary()
+        self.travel_matrix = apm.get_travel_matrix()
         self.passengers_lax_jfk = 996370
         self.passengers_jfk_lax = 986385
         self.passengers_lga_lax = 3850
@@ -16,8 +17,8 @@ class AirportTestCase(unittest.TestCase):
         self.assertEqual(size, 52, "Wrong size of city list")
 
     def test_size_of_matrix(self):
-        row_size = len(self.city_matrix)
-        col_size = len(self.city_matrix[0])
+        row_size = len(self.travel_matrix)
+        col_size = len(self.travel_matrix[0])
         self.assertEqual(row_size * col_size, 52 * 52, "Wrong matrix size")
 
     def test_reading_air_travel_data(self):
@@ -26,7 +27,7 @@ class AirportTestCase(unittest.TestCase):
         passengers_jfk_lax = 0
         passengers_lga_lax = 0
 
-        for row in airport.read_air_travel_data():
+        for row in apm.read_air_travel_data():
             if row[0] == 'LAX' and row[1] == 'JFK':
                 passengers_lax_jfk = row[2]
             if row[0] == 'LAX' and row[1] == 'LGA':
@@ -46,17 +47,29 @@ class AirportTestCase(unittest.TestCase):
                          "Wrong passenger number for flights from LGA to LAX")
 
     def test_mapping_airports_to_cities(self):
-        airports = airport.map_airports_to_cities(self.city_dictionary, airport.get_flight_data_local())
+        airports = apm.map_airports_to_cities(self.city_dictionary, apm.get_flight_data_local())
+
         new_york_airports = ['JFK', 'JRB', 'TSS', 'LGA']
-        correctly_mapped = True
-        for key in new_york_airports:
-            if key not in airports["New York"]:
-                correctly_mapped = False
+        los_angeles_airports = ['LAX']
+        cairo_airports = ['CAI']
 
-        self.assertEqual(True, correctly_mapped, "Airport not in new york airports")
-        self.assertEqual(len(airports["New York"]), len(new_york_airports), "Wrong length of airport list for New York")
+        correctly_mapped_ny = self.check_airports(airports["New York"], new_york_airports)
+        correctly_mapped_la = self.check_airports(airports["Los Angeles"], los_angeles_airports)
+        correctly_mapped_cairo = self.check_airports(airports["Cairo"], cairo_airports)
 
-    def test_initiation_of_transportation_matrix(self):
-        passengers_between_la_ny = self.passengers_lax_jfk + self.passengers_jfk_lax + self.passengers_lga_lax + self.passengers_lax_lga
-        self.assertEqual(airport.get_passengers_between_cities("Los Angeles", "New York"), passengers_between_la_ny,
-                         "Wrong passenger count between LA and NYC")
+
+        self.assertEqual(True, correctly_mapped_ny, "Airport not in New York airports")
+        self.assertEqual(True, correctly_mapped_la, "Airport not in Los Angeles airports")
+        self.assertEqual(True, correctly_mapped_cairo, "Airport not in Cairo airports")
+
+    def check_airports(self, test_set, correct_set):
+        if len(test_set) != len(correct_set):
+            return False
+        for key in correct_set:
+            if key not in test_set:
+                return False
+        return True
+
+
+suite = unittest.TestLoader().loadTestsFromTestCase(AirportTestCase)
+unittest.TextTestRunner(verbosity=2).run(suite)
