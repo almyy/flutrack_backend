@@ -99,6 +99,7 @@ def initiate_initial_conditions(t):
                     city.lat_res[tau, t] = 0
                 city.inf_res[tau, t] = 0
 
+  
 
 class City:
     index_city_id = 0
