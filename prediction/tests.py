@@ -1,9 +1,6 @@
 import unittest
 
-from airport import airport
 from prediction import distribute_city_population as dcp
-
-
 
 
 class DistributionTestCase(unittest.TestCase):
@@ -21,7 +18,7 @@ class DistributionTestCase(unittest.TestCase):
     def test_initial_conditions_in_initial_city(self):
         result = True
         for city in dcp.city_list:
-            if city.get_latent(0, 0) != 0:
+            if city.get_latent_iterative(0, 0) != 0:
                 result = False
         self.assertEqual(True, result)
 
