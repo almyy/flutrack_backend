@@ -219,7 +219,7 @@ def initiate_validation_results():
 initiate_validation_results()
 hong_kong = city_list[9]
 new_york = city_list[0]
-days = 300
+days = 250
 result_matrix = []
 tmp_res = []
 
