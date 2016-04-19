@@ -214,34 +214,35 @@ def initiate_validation_results():
     first_travel_day = 0
     initiate_influenza()
     initiate_initial_conditions(first_travel_day)
+    return city_list[City.index_city_id]
 
 
-initiate_validation_results()
-hong_kong = city_list[9]
-new_york = city_list[0]
-days = 250
-result_matrix = []
-tmp_res = []
-
-for city in city_list:
-    tmp_res.append(city.name)
-result_matrix.append(tmp_res)
-
-tmp_res = []
-for t in range(0, days):
-    calculate_state_equations(t)
-    # print(hong_kong)
-
-    for city in city_list:
-        tmp_res.append(int(city.get_daily_computed_morbidity(t + 1)))
-        # tmp_res.append(int(city.lat_res[0, t]))
-    result_matrix.append(tmp_res)
-    tmp_res = []
-
-
-s = [[str(e) for e in row] for row in result_matrix]
-lens = [max(map(len, col)) for col in zip(*s)]
-fmt = '\t'.join('{{:{}}}'.format(x) for x in lens)
-table = [fmt.format(*row) for row in s]
-print('\n'.join(table))
-# print(DataFrame(result_matrix))
+# initiate_validation_results()
+# hong_kong = city_list[9]
+# new_york = city_list[0]
+# days = 250
+# result_matrix = []
+# tmp_res = []
+#
+# for city in city_list:
+#     tmp_res.append(city.name)
+# result_matrix.append(tmp_res)
+#
+# tmp_res = []
+# for t in range(0, days):
+#     calculate_state_equations(t)
+#     # print(hong_kong)
+#
+#     for city in city_list:
+#         tmp_res.append(int(city.get_daily_computed_morbidity(t + 1)))
+#         # tmp_res.append(int(city.lat_res[0, t]))
+#     result_matrix.append(tmp_res)
+#     tmp_res = []
+#
+#
+# s = [[str(e) for e in row] for row in result_matrix]
+# lens = [max(map(len, col)) for col in zip(*s)]
+# fmt = '\t'.join('{{:{}}}'.format(x) for x in lens)
+# table = [fmt.format(*row) for row in s]
+# print('\n'.join(table))
+# # print(DataFrame(result_matrix))
