@@ -1,10 +1,5 @@
-# Distributes the city population in four explicit disjoint states,
-# Population p = x(t) + sum( u(tau,t),1, tau1) + sum(yi(tau,t),0,tau2) + z(t)
-
 import csv
 import os
-
-from pymongo import MongoClient
 
 from airport import airport
 from prediction.distribution_initiation import init_distributions
@@ -21,33 +16,6 @@ daily_infectious_contact_rate = 1.055  # lambda #TODO Find a correct lambda valu
 fraction_of_susceptible_population = 0.641  # alpha #TODO Find a correct alpha value
 fraction_of_newly_ill_reported = 0.3  # beta. #TODO Set a correct beta value
 forecast_horizon = 440  # T
-
-mongo_uri = os.environ.get('MONGOLAB_URI')
-
-if mongo_uri:
-    client = MongoClient(mongo_uri)
-    print('Connected to MongoDB')
-    db = client.heroku_k99m6wnb
-    cities = db.cities
-else:
-    cities = 0
-    print('Couldnt connect to DB')
-
-
-def init_city_list():
-    if cities is not 0:
-        if len(city_list) == 0:
-            index = 0
-            for doc in cities.find():
-                city_list.append(City(index, doc['city'], doc['population'], doc['location']))
-                index += 1
-    else:
-        with open(city_population_file) as csvfile:
-            reader = csv.reader(csvfile)
-            index = 0
-            for row in reader:
-                city_list.append(City(index, row[0], float(row[1]), {}))
-                index += 1
 
 
 def init_dummy_city_list():
@@ -77,7 +45,7 @@ def get_removed_h(t):
 # Returns the probability that a latent individual becomes infectious on day t (5) gamma(t)
 def latent_becomes_infectious(t):
     result = (get_latent_f(t) - get_latent_f(t + 1)) / get_latent_f(t)
-    return float(infection_distribution[3][t])
+    return result
 
 
 # Returns the probability that an infectious individual recovers on day t   (6) delta(t)
@@ -191,7 +159,7 @@ class City:
         result = 0
         for tau in range(0, length_of_incubation_period + 1):
             result += latent_becomes_infectious(tau) * self.lat_res[tau, t - 1]
-        return fraction_of_newly_ill_reported * result
+        return result
 
     # Adds the four states in the city class to ensure that they are equal to the population count.
     def calculate_city_population(self):
@@ -205,38 +173,29 @@ class City:
 
 def initiate_validation_results():
     init_dummy_city_list()
-    city_matrix = airport.create_dummy_matrix()
     City.index_city_id = 9
     first_travel_day = 0
     initiate_influenza()
     initiate_initial_conditions(first_travel_day)
-    # return city_list[City.index_city_id]
+    return city_list[City.index_city_id]
 
-initiate_validation_results()
-hong_kong = city_list[9]
-new_york = city_list[0]
-days = 250
-result_matrix = []
-tmp_res = []
-
-for city in city_list:
-    tmp_res.append(city.name)
-result_matrix.append(tmp_res)
-
-tmp_res = []
-for t in range(0, days):
-    calculate_state_equations(t)
-    # print(hong_kong)
-
-    for city in city_list:
-        # tmp_res.append(int(city.get_daily_computed_morbidity(t + 1)))
-        tmp_res.append(int(city.lat_res[0, t]))
-    result_matrix.append(tmp_res)
-    tmp_res = []
-
-
-s = [[str(e) for e in row] for row in result_matrix]
-lens = [max(map(len, col)) for col in zip(*s)]
-fmt = '\t'.join('{{:{}}}'.format(x) for x in lens)
-table = [fmt.format(*row) for row in s]
-print('\n'.join(table))
+#
+# initiate_validation_results()
+# result_matrix = []
+# tmp_res = []
+# for t in range(0, forecast_horizon):
+#     calculate_state_equations(t)
+#     # print(hong_kong)
+#
+#     for city in city_list:
+#         tmp_res.append(int(city.get_daily_computed_morbidity(t + 1)))
+#         # tmp_res.append(int(city.lat_res[0, t]))
+#     result_matrix.append(tmp_res)
+#     tmp_res = []
+#
+#
+# s = [[str(e) for e in row] for row in result_matrix]
+# lens = [max(map(len, col)) for col in zip(*s)]
+# fmt = '\t'.join('{{:{}}}'.format(x) for x in lens)
+# table = [fmt.format(*row) for row in s]
+# print('\n'.join(table))
