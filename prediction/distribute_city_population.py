@@ -4,26 +4,37 @@ import os
 from airport import airport
 from prediction.distribution_initiation import init_distributions
 
-city_matrix = airport.create_dummy_matrix()
+# city_matrix = airport.create_dummy_matrix()
+city_matrix = airport.create_grais_matrix()
+# city_matrix = airport.get_travel_matrix()
 infection_distribution = init_distributions()
 city_list = []
-city_population_file = os.path.abspath(os.path.dirname(__file__)) + '/data/citypopulation.csv'
+city_population_file = os.path.abspath(os.path.dirname(__file__)) + '/data/data.csv'
 dummy_population_file = os.path.abspath(os.path.dirname(__file__)) + '/data/dummypopulation.csv'
+grais_population_file = os.path.abspath(os.path.dirname(__file__)) + '/data/grais_population.csv'
 
 length_of_incubation_period = 2  # tau1
 length_of_infection_period = 8  # tau2
 daily_infectious_contact_rate = 1.055  # lambda #TODO Find a correct lambda value
 fraction_of_susceptible_population = 0.641  # alpha #TODO Find a correct alpha value
 fraction_of_newly_ill_reported = 0.3  # beta. #TODO Set a correct beta value
+
 forecast_horizon = 440  # T
+forecast_beginning = 164    # 12. juni
+periodic_swing_T1 = 275     # 1. October
+periodic_swing_T2 = 92     # 1. April
+
+monthly_scaling_south_north = {-1: [0.10, 0.25, 0.55, 0.70, 0.85, 1.0, 1.0, 0.85, 0.70, 0.55, 0.25, 0.10],
+                               0: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                               1: [1.0, 0.85, 0.70, 0.55, 0.25, 0.10, 0.10, 0.25, 0.55, 0.70, 0.85, 1.0]}
 
 
 def init_dummy_city_list():
-    with open(dummy_population_file) as csvfile:
+    with open(grais_population_file) as csvfile:
         reader = csv.reader(csvfile)
         index = 0
         for row in reader:
-            city_list.append(City(index, row[0], float(row[1]), {}))
+            city_list.append(City(index, row[0], float(row[1]), {}, int(row[2])))
             index += 1
 
 
@@ -51,14 +62,30 @@ def latent_becomes_infectious(t):
 # Returns the probability that an infectious individual recovers on day t   (6) delta(t)
 def infectious_recovers(t):
     result = (get_removed_h(t + 1) - get_removed_h(t)) / get_infectious_g(t)
-    return float(infection_distribution[4][t])
+    return result
+
+
+# Returns the correct period for flu. (Between October and April - True/False).
+def calculate_seasonality_rl(t):
+    current_date = (forecast_beginning + t) % 365
+    season = -1
+    if periodic_swing_T2 < current_date < periodic_swing_T1:
+        season = 1
+    return season
+
+
+# Returns the correct month for seasonality of flu.
+def calculate_seasonality_g(t):
+    current_date = (forecast_beginning + t) % 365
+    month = current_date // 31
+    return month
 
 
 # Computes the initial conditions for all cities (24, 25, 26)
 def initiate_initial_conditions(t):
     for city in city_list:
         city.sus_res[t] = city.population * fraction_of_susceptible_population
-        if city.index_id == City.index_city_id:
+        if city.id == City.index_city_id:
             for tau in range(1, length_of_infection_period + 1):
                 if tau <= length_of_incubation_period:
                     city.lat_res[tau, t] = get_latent_f(tau) * city.lat_res[0, t - tau + 1]
@@ -73,7 +100,7 @@ def initiate_initial_conditions(t):
 def initiate_influenza():
     for city in city_list:
         city.sus_res[0] = city.population * fraction_of_susceptible_population  # Equation 20
-        if city.index_id == City.index_city_id:
+        if city.id == City.index_city_id:
             city.lat_res[0, 0] = 0.00001 * city.population      # Equation 19
             city.inf_res[0, 0] = 0
             for tau in range(1, length_of_infection_period + 1):
@@ -86,55 +113,61 @@ def initiate_influenza():
 
 
 def calculate_state_equations(t):
+    month = calculate_seasonality_g(t)
     for city in city_list:
-        tmp_sum = 0
+        seasonality = monthly_scaling_south_north[city.zone][month]
+        tmp_sum_lat = 0
         for tau in range(1, length_of_infection_period + 1):
-            tmp_sum += city.apply_omega_latent(City.get_latent_iterative, 0, t - tau) * get_infectious_g(tau)
-            tmp_sum += city.inf_res[tau, t]
-        city.lat_res[0, t] = daily_infectious_contact_rate * (city.sus_res[t] / city.population) * tmp_sum
+            tmp_sum_lat += city.apply_omega_latent(0, t - tau) * get_infectious_g(tau)
+        city.lat_res[0, t] = seasonality * daily_infectious_contact_rate * (city.sus_res[t] / city.population) * tmp_sum_lat
         city.inf_res[0, t] = 0
 
-        city.sus_res[t + 1] = city.get_sus_iterative(t) - city.lat_res[0, t]
+        city.sus_res[t + 1] = city.apply_omega_susceptible(t) - city.lat_res[0, t]
+        for tau in range(1, length_of_incubation_period + 1):
+                res = city.apply_omega_latent(tau, t)
+                city.lat_res[tau, t + 1] = (1 - latent_becomes_infectious(tau)) * res
+                city.inf_res[tau, t + 1] = latent_becomes_infectious(tau) * res + ((1 - infectious_recovers(tau)) * city.inf_res[tau, t])
 
-        for tau in range(1, length_of_infection_period + 1):
-            if tau <= length_of_incubation_period:
-                city.lat_res[tau, t + 1] = (1 - latent_becomes_infectious(tau)) * city.apply_omega_latent(City.get_latent_iterative, tau, t)
-                city.inf_res[tau, t + 1] = latent_becomes_infectious(tau) * city.apply_omega_latent(City.get_latent_iterative, tau, t) + (1 - infectious_recovers(tau)) * city.inf_res[tau, t]
-            else:
-                city.inf_res[tau, t + 1] = (1 - infectious_recovers(tau)) * city.inf_res[tau, t]
-        city.susceptible = int(city.get_sus_iterative(t))
+        for tau in range(length_of_incubation_period + 1, length_of_infection_period + 1):
+            city.inf_res[tau, t + 1] = ((1 - infectious_recovers(tau)) * city.inf_res[tau, t])
+
+        morbidity = 0
+        for tau in range(0, length_of_incubation_period + 1):
+            morbidity += latent_becomes_infectious(tau) * city.lat_res[tau, t]
+        city.daily_morbidity.append(morbidity)
 
 
 class City:
     index_city_id = 0
 
-    def __init__(self, index_id, name, population, location):
-        self.index_id = index_id
+    def __init__(self, id, name, population, location, zone):
+        self.id = id
         self.name = name
         self.population = float(population)
-        self.susceptible = 0
-        self.latent = 0
-        self.infectious = 0
-        self.recovered = 0
-        self.initial_date_of_epidemic = 0
         self.sus_res = {}
         self.lat_res = {}
         self.inf_res = {}
+        self.daily_morbidity = []
         self.location = location
+        self.zone = zone
+        self.peak_day = 0
 
-    def get_latent_iterative(self, tau, t):
-        return self.lat_res[tau, t]
-
-    def get_sus_iterative(self, t):
-        return self.sus_res[t]
-
-    def apply_omega_latent(self, func, tau, t):
+    def apply_omega_susceptible(self, t):
         help_sum = 0
         for j in range(len(city_matrix)):
-            aj = func(city_list[j], tau, t) * city_matrix[j][self.index_id] / city_list[j].population
-            ai = func(self, tau, t) * city_matrix[self.index_id][j] / self.population
+            aj = city_list[j].sus_res[t] * city_matrix[j][self.id] / city_list[j].population
+            ai = self.sus_res[t] * city_matrix[self.id][j] / self.population
             help_sum += aj - ai
-        result = func(self, tau, t) + help_sum
+        result = self.sus_res[t] + help_sum
+        return result
+
+    def apply_omega_latent(self, tau, t):
+        help_sum = 0
+        for j in range(len(city_matrix)):
+            aj = city_list[j].lat_res[tau, t] * city_matrix[self.id][j] / city_list[j].population
+            ai = self.lat_res[tau, t] * city_matrix[j][self.id] / self.population
+            help_sum += aj - ai
+        result = self.lat_res[tau, t] + help_sum
         tmp = 0
         for tau in range(length_of_incubation_period + 1):
             tmp += get_latent_f(tau)
@@ -142,33 +175,9 @@ class City:
             result = 0
         return result
 
-    def apply_omega_sus(self, func, t):
-        help_sum = 0
-        for j in range(len(city_matrix)):
-            aj = func(city_list[j], t)
-            sigma_ji = city_matrix[j][self.index_id] / city_list[j].population
-
-            ai = func(self, t)
-            sigma_ij = city_matrix[self.index_id][j] / self.population
-            help_sum += (aj * sigma_ji) - (ai * sigma_ij)
-        result = func(self, t) + help_sum
-        return result
-
-    # Equation (12) and (13)
-    def get_daily_computed_morbidity(self, t):
-        result = 0
-        for tau in range(0, length_of_incubation_period + 1):
-            result += latent_becomes_infectious(tau) * self.lat_res[tau, t - 1]
-        return result
-
-    # Adds the four states in the city class to ensure that they are equal to the population count.
-    def calculate_city_population(self):
-        return int(self.susceptible + self.latent + self.infectious + self.recovered)
 
     def __str__(self):
-        return "ID: " + str(self.index_id) + " \tName: " + self.name + " \t Population: \t" + str(self.population) + \
-               " \t x: " + str(self.susceptible) + " \t u: " + str(self.latent) + "     \t y: " + str(self.infectious) + \
-               " \t z: " + str(self.recovered)
+        return "ID: " + str(self.id) + " \tName: " + self.name + " \t Population: \t" + str(self.population)
 
 
 def initiate_validation_results():
@@ -179,12 +188,20 @@ def initiate_validation_results():
     initiate_initial_conditions(first_travel_day)
     return city_list[City.index_city_id]
 
-#
-# initiate_validation_results()
+
+
+# hong = initiate_validation_results()
 # result_matrix = []
 # tmp_res = []
-# for t in range(0, forecast_horizon):
+
+# for t in range(0, forecast_horizon - 200):
 #     calculate_state_equations(t)
+#     print(t)
+#
+# for t in range(0, forecast_horizon - 201):
+#     hong.get_daily_computed_morbidity(t + 1)
+#     hong.get_daily_computed_morbidity(t + 2)
+
 #     # print(hong_kong)
 #
 #     for city in city_list:
@@ -192,8 +209,8 @@ def initiate_validation_results():
 #         # tmp_res.append(int(city.lat_res[0, t]))
 #     result_matrix.append(tmp_res)
 #     tmp_res = []
-#
-#
+
+
 # s = [[str(e) for e in row] for row in result_matrix]
 # lens = [max(map(len, col)) for col in zip(*s)]
 # fmt = '\t'.join('{{:{}}}'.format(x) for x in lens)

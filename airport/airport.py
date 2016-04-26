@@ -7,8 +7,10 @@ import os
 airport_file = os.path.abspath(os.path.dirname(__file__)) + '/data/airports.json'
 cities = os.path.abspath(os.path.dirname(__file__)) + '/data/cities.txt'
 t100 = os.path.abspath(os.path.dirname(__file__)) + '/data/t100market.csv'
+t100_2000 = os.path.abspath(os.path.dirname(__file__)) + '/data/t100market2000.csv'
 chosen_airports = os.path.abspath(os.path.dirname(__file__)) + '/data/chosen_airports.csv'
 dummy_matrix_file = os.path.abspath(os.path.dirname(__file__)) + '/data/dummy_matrix.xlsx'
+grais_matrix_file = os.path.abspath(os.path.dirname(__file__)) + '/data/grais_matrix.xlsx'
 city_list = []
 matrix_size = 52
 
@@ -30,7 +32,7 @@ def sort_per_origin(list_input):
 
 # Initiate and sort the t100market database.
 def read_air_travel_data():
-    with open(t100) as csv_file:
+    with open(t100_2000) as csv_file:
         reader = csv.DictReader(csv_file)
         origin_list = sort_per_origin(reader)
     return sorted(origin_list, key=lambda k: k[2])
@@ -60,12 +62,6 @@ def init_city_names():
     for line in f:
         city_list.append(line.replace("\n", ""))
     f.close()
-
-
-# Return the number of passengers that has travelled between two cities.
-# def get_passengers_between_cities(city1, city2):
-#     return city_matrix[city_list.index(city1)][city_list.index(city2)] + city_matrix[city_list.index(city2)][
-#         city_list.index(city1)]
 
 
 # Initiate a dictionary of matrix cities, with city name as key.
@@ -104,7 +100,6 @@ def write_airports_to_file(shortened):
 # Initiate the matrix with travel data between the cities.
 def init_city_travel_matrix(airports, data):
     city_matrix = [[0] * matrix_size for x in range(matrix_size)]
-    # TODO Implement the matrix to have travel data on a daily number of travelers between cities.
     shortened = []
     for key in airports:
         for airport in airports[key]:
@@ -114,7 +109,7 @@ def init_city_travel_matrix(airports, data):
         if row[0] in shortened and row[1] in shortened:
             origin_index = get_city_index(row[0], airports)
             destination_index = get_city_index(row[1], airports)
-            city_matrix[origin_index][destination_index] += row[2]
+            city_matrix[origin_index][destination_index] += int(row[2] / 365)
     return city_matrix
 
 
@@ -132,10 +127,24 @@ def create_dummy_matrix():
     return _result
 
 
+def create_grais_matrix():
+    wkb = xlrd.open_workbook(grais_matrix_file)
+    sheet = wkb.sheet_by_index(0)
+    _result = []
+
+    for row in range(1, sheet.nrows):
+        _row = []
+        for col in range(1, sheet.ncols):
+            _row.append(sheet.cell_value(row, col))
+        _result.append(_row)
+    return _result
+
+
 # Returns the city matrix needed for prediction
 def get_travel_matrix():
     airports = map_airports_to_cities(init_city_dictionary(), get_flight_data_local())
     data = read_air_travel_data()
     return init_city_travel_matrix(airports, data)
+
 
 init_city_names()
