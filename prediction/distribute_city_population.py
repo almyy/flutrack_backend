@@ -122,6 +122,7 @@ def initiate_initial_conditions(t):
                     city.lat_res[tau, t] = 0
                 city.inf_res[tau, t] = 0
 
+#Type
 
 def initiate_influenza():
     for city in city_list:
