@@ -41,16 +41,20 @@ def populate_from_json(data):
 
 def populate_from_txt(file):
     with open(file) as f:
+        index = 0
         for row in f:
             row = row.split(sep=',')
             json = requests.get('https://maps.googleapis.com/maps/api/geocode/json',
                                 {'key': os.environ.get('GEOLOCATION_KEY'), 'address': row[0]}).json()
             cities.insert({
+                'index': index,
+                'zone': row[2].strip('\n'),
                 'city': row[0],
                 'location': json['results'][0]['geometry']['location'],
                 'bounding_box': json['results'][0]['geometry']['bounds'],
                 'population': row[1].strip('\n')
             })
+            index += 1
 
 
 def lookup_city_name(lat, lng):
