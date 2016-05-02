@@ -190,13 +190,14 @@ def initiate_validation_results(index_city):
     return city_list[City.index_city_id]
 
 
-def forecast(index_city, day):
+def forecast():
+    index_city = 14
     initiate_validation_results(index_city)
-    for t in range(0, day):
-        if day > forecast_horizon:
-            break
+    forecast_obj = []
+    for t in range(0, forecast_horizon):
         calculate_state_equations(t)
-    data = []
-    for city in city_list:
-        data.append({'city': city.name, 'morbidity': city.daily_morbidity[day - 1], 'location': city.location})
-    return data
+        data = []
+        for city in city_list:
+            data.append({'city': city.name, 'morbidity': city.daily_morbidity[t], 'location': city.location})
+        forecast_obj.append(data)
+    return forecast_obj
