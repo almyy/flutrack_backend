@@ -232,3 +232,7 @@ def forecast():
             data.append({'city': city.name, 'morbidity': city.daily_morbidity[t], 'location': city.location})
         forecast_obj.append(data)
     return forecast_obj
+
+obj = forecast()
+for list in obj:
+    print(list)
