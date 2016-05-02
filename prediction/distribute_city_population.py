@@ -198,5 +198,5 @@ def forecast(index_city, day):
         calculate_state_equations(t)
     data = []
     for city in city_list:
-        data.append({'City': city.name, 'Morbidity': city.daily_morbidity[day], 'Localtion': city.location})
+        data.append({'city': city.name, 'morbidity': city.daily_morbidity[day], 'location': city.location})
     return data
