@@ -46,16 +46,14 @@ else:
 def init_city_list():
     if cities is not 0:
         if len(city_list) == 0:
-            index = 0
             for doc in cities.find():
-                city_list.append(City(index, doc['city'], doc['population'], doc['location']))
-                index += 1
+                city_list.append(City(doc['index'], doc['city'], doc['population'], doc['location'], int(doc['zone'])))
     else:
         with open(city_population_file) as csvfile:
             reader = csv.reader(csvfile)
             index = 0
             for row in reader:
-                city_list.append(City(index, row[0], float(row[1]), {}))
+                city_list.append(City(index, row[0], float(row[1]), {}, 0))
                 index += 1
 
 
