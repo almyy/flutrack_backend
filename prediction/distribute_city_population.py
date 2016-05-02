@@ -4,8 +4,8 @@ import os
 from airport import airport
 from prediction.distribution_initiation import init_distributions
 
-# city_matrix = airport.create_dummy_matrix()
-city_matrix = airport.create_grais_matrix()
+city_matrix = airport.create_dummy_matrix()
+# city_matrix = airport.create_grais_matrix()
 # city_matrix = airport.get_travel_matrix()
 infection_distribution = init_distributions()
 city_list = []
@@ -30,7 +30,7 @@ monthly_scaling_south_north = {-1: [0.10, 0.25, 0.55, 0.70, 0.85, 1.0, 1.0, 0.85
 
 
 def init_dummy_city_list():
-    with open(grais_population_file) as csvfile:
+    with open(dummy_population_file) as csvfile:
         reader = csv.reader(csvfile)
         index = 0
         for row in reader:
@@ -68,9 +68,7 @@ def infectious_recovers(t):
 # Returns the correct period for flu. (Between October and April - True/False).
 def calculate_seasonality_rl(t):
     current_date = (forecast_beginning + t) % 365
-    season = -1
-    if periodic_swing_T2 < current_date < periodic_swing_T1:
-        season = 1
+    season = 1 if periodic_swing_T2 < current_date < periodic_swing_T1 else -1
     return season
 
 
@@ -114,8 +112,10 @@ def initiate_influenza():
 
 def calculate_state_equations(t):
     month = calculate_seasonality_g(t)
+    # month = calculate_seasonality_rl(t)
     for city in city_list:
         seasonality = monthly_scaling_south_north[city.zone][month]
+        # seasonality = 0.1 if city.zone == month else 1
         tmp_sum_lat = 0
         for tau in range(1, length_of_infection_period + 1):
             tmp_sum_lat += city.apply_omega_latent(0, t - tau) * get_infectious_g(tau)
@@ -123,6 +123,7 @@ def calculate_state_equations(t):
         city.inf_res[0, t] = 0
 
         city.sus_res[t + 1] = city.apply_omega_susceptible(t) - city.lat_res[0, t]
+
         for tau in range(1, length_of_incubation_period + 1):
                 res = city.apply_omega_latent(tau, t)
                 city.lat_res[tau, t + 1] = (1 - latent_becomes_infectious(tau)) * res
@@ -134,7 +135,7 @@ def calculate_state_equations(t):
         morbidity = 0
         for tau in range(0, length_of_incubation_period + 1):
             morbidity += latent_becomes_infectious(tau) * city.lat_res[tau, t]
-        city.daily_morbidity.append(morbidity)
+        city.daily_morbidity.append(fraction_of_newly_ill_reported * morbidity)
 
 
 class City:
@@ -180,39 +181,22 @@ class City:
         return "ID: " + str(self.id) + " \tName: " + self.name + " \t Population: \t" + str(self.population)
 
 
-def initiate_validation_results():
+def initiate_validation_results(index_city):
     init_dummy_city_list()
-    City.index_city_id = 9
+    City.index_city_id = index_city
     first_travel_day = 0
     initiate_influenza()
     initiate_initial_conditions(first_travel_day)
     return city_list[City.index_city_id]
 
 
-
-# hong = initiate_validation_results()
-# result_matrix = []
-# tmp_res = []
-
-# for t in range(0, forecast_horizon - 200):
-#     calculate_state_equations(t)
-#     print(t)
-#
-# for t in range(0, forecast_horizon - 201):
-#     hong.get_daily_computed_morbidity(t + 1)
-#     hong.get_daily_computed_morbidity(t + 2)
-
-#     # print(hong_kong)
-#
-#     for city in city_list:
-#         tmp_res.append(int(city.get_daily_computed_morbidity(t + 1)))
-#         # tmp_res.append(int(city.lat_res[0, t]))
-#     result_matrix.append(tmp_res)
-#     tmp_res = []
-
-
-# s = [[str(e) for e in row] for row in result_matrix]
-# lens = [max(map(len, col)) for col in zip(*s)]
-# fmt = '\t'.join('{{:{}}}'.format(x) for x in lens)
-# table = [fmt.format(*row) for row in s]
-# print('\n'.join(table))
+def forecast(index_city, day):
+    initiate_validation_results(index_city)
+    for t in range(0, day):
+        if day > forecast_horizon:
+            break
+        calculate_state_equations(t)
+    data = []
+    for city in city_list:
+        data.append({'City': city.name, 'Morbidity': city.daily_morbidity[day]})
+    return data

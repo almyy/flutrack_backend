@@ -4,14 +4,16 @@ import matplotlib.pyplot as plt
 import plotly
 from plotly.graph_objs import Scatter, Layout
 
-forecast_horizon = 440 + 44
+forecast_horizon = 440
 
 
 def comparison_forecast(city):
     result = []
     tmp_res = 0
+    lastmonth = 0
     city.peak_day = city.daily_morbidity.index(max(city.daily_morbidity))
     for t in range(0, forecast_horizon):
+        current_date = (dcp.forecast_beginning + t) % 365
         morbidity = city.daily_morbidity[t]
         tmp_res += int(morbidity / (city.population / 100000))
         if t % 4 == 0:
@@ -35,7 +37,7 @@ def get_peak_day_results():
     return sort_list
 
 
-index_city = dcp.initiate_validation_results()
+index_city = dcp.initiate_validation_results(9)
 for t in range(0, forecast_horizon):
     dcp.calculate_state_equations(t)
 
@@ -58,8 +60,7 @@ grais_data_labels = ['Hong Kong', 'Manilla', 'Singapore', 'Jakrata', 'Bangkok', 
                      'Perth', 'Wellington']
 
 grais_data = [0, 4, 15, 35, 62, 65, 81, 83, 112, 115, 121, 121, 125, 130, 130, 135, 137, 138, 140, 140, 145, 145, 150,
-              160,
-              160, 160, 163, 167, 172, 172, 175, 175, 180, 180, 190, 190, 195, 197, 200, 202, 210, 210, 213, 218, 218,
+              160, 160, 160, 163, 167, 172, 172, 175, 175, 180, 180, 190, 190, 195, 197, 200, 202, 210, 210, 213, 218, 218,
               285, 287, 300, 340, 340, 360, 360]
 
 # for p in points:
@@ -79,12 +80,10 @@ grais_data = [0, 4, 15, 35, 62, 65, 81, 83, 112, 115, 121, 121, 125, 130, 130, 1
 
 
 
-
 result_matrix = []
-for city in reversed(plot):
+for city in dcp.city_list:
     row = [city.id, str(city.name), comparison_forecast(city)]
     result_matrix.append(row)
-    result_matrix.append(comparison_forecast(city))
     # print(str(city.name) + " \t\t" + str(city.peak_day))
 #
 # for city in sort_list:
@@ -95,7 +94,4 @@ s = [[str(e) for e in row] for row in result_matrix]
 lens = [max(map(len, col)) for col in zip(*s)]
 fmt = '\t'.join('{{:{}}}'.format(x) for x in lens)
 table = [fmt.format(*row) for row in s]
-var = ['July', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'March', 'April', 'May', 'June', 'July', 'Aug',
-       'Sept']
-print(var)
 print('\n'.join(table))
