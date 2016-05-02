@@ -1,6 +1,8 @@
 import csv
 import os
 
+from pymongo import MongoClient
+
 from airport import airport
 from prediction.distribution_initiation import init_distributions
 
@@ -27,6 +29,34 @@ periodic_swing_T2 = 92     # 1. April
 monthly_scaling_south_north = {-1: [0.10, 0.25, 0.55, 0.70, 0.85, 1.0, 1.0, 0.85, 0.70, 0.55, 0.25, 0.10],
                                0: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
                                1: [1.0, 0.85, 0.70, 0.55, 0.25, 0.10, 0.10, 0.25, 0.55, 0.70, 0.85, 1.0]}
+
+
+mongo_uri = os.environ.get('MONGOLAB_URI')
+
+if mongo_uri:
+    client = MongoClient(mongo_uri)
+    print('Connected to MongoDB')
+    db = client.heroku_k99m6wnb
+    cities = db.cities
+else:
+    cities = 0
+    print('Couldnt connect to DB')
+
+
+def init_city_list():
+    if cities is not 0:
+        if len(city_list) == 0:
+            index = 0
+            for doc in cities.find():
+                city_list.append(City(index, doc['city'], doc['population'], doc['location']))
+                index += 1
+    else:
+        with open(city_population_file) as csvfile:
+            reader = csv.reader(csvfile)
+            index = 0
+            for row in reader:
+                city_list.append(City(index, row[0], float(row[1]), {}))
+                index += 1
 
 
 def init_dummy_city_list():
@@ -182,7 +212,8 @@ class City:
 
 
 def initiate_validation_results(index_city):
-    init_dummy_city_list()
+    # init_dummy_city_list()
+    init_city_list()
     City.index_city_id = index_city
     first_travel_day = 0
     initiate_influenza()
