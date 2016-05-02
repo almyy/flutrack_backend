@@ -3,6 +3,7 @@ import tweepy
 import carmen
 import json
 import configparser
+import pprint
 from max_ent_classifier import MaxEntClassifier
 from classifier_helper import ClassifierHelper
 
@@ -23,8 +24,8 @@ def filter_tweet(status):
         return True
 
 
-def store_status_ml(status):
-    f.write(",|" + status.text + '|\n')
+# def store_status_ml(status):
+#     f.write(",|" + status.text + '|\n')
 
 
 class FluStreamListener(tweepy.StreamListener):
@@ -32,11 +33,19 @@ class FluStreamListener(tweepy.StreamListener):
     status_count_retweet = 0
     previous_status_text = ""
     status_history = []
-    resolver = carmen.get_resolver()
-    resolver.load_locations()
+    classifier = MaxEntClassifier(stop_words_file='data/stopwords.txt',
+                                  related_training_data_file='data/training_data.csv',
+                                  awareness_training_data_file='data/training_data_awareness_v2.csv',
+                                  needs_training=False, related_classifier_dump_file='data/classifier_dump.pickle',
+                                  awareness_classifier_dump_file='data/awareness_nb_classifier_dump.pickle',
+                                  feature_list_file='data/feature_list.txt', classifier_type='nb')
 
     def on_status(self, status):
-        print(self.resolver.resolve_tweet(status))
+        self.status_count_original += 1
+        if self.classifier.classify_related(status.text) == '1' and self.classifier.classify_awareness(status.text) == '0':
+            print(str(status.text.encode('utf-8')))
+
+        print(self.status_count_original)
 
     def on_error(self, status_code):
         print(str(status_code))
@@ -68,6 +77,7 @@ def stream_tweets():
     stream = tweepy.Stream(auth=auth, listener=stream_listener)
     machine_learning_data = ['fever', 'sick', 'cough', 'flu', 'influenza', 'runny nose', 'stuffed nose', 'sore throat',
                              'chills', 'shivering', 'headache', 'fatigued', 'vomiting']
+    test_data = ['fever', 'sore throat', 'cough', 'runny nose', 'headache']
     data = ['fever sick', 'fever cough', 'flu sick', 'flu fever', 'runny nose', 'stuffed nose',
             'sick cough', 'fever cough', 'sore throat', 'headache fever', 'fatigued sick', 'fever tired',
             'vomiting flu', 'chills flu']
@@ -92,10 +102,11 @@ def get_tweets_from_rest():
     # resolver.load_locations()
     counter = 0
     for status in tweepy.Cursor(api.search,
-                                q='flu+OR+chills+OR+sore+throat+OR+headache+OR+runny+nose+OR+vomiting+OR+sneazing+OR+fever+OR+diarrhea+OR+dry+cough').items():
-        print(json.dumps(status._json))
+                                # flu+OR+chills+OR+sore+throat+OR+headache+OR+runny+nose+OR+vomiting+OR+sneazing+OR+fever+OR+diarrhea+OR+dry+cough
+                                q='influenza+OR+flu+AND+sore+AND+throat+AND+fever', count=100).items():
+        pprint.pprint(str(status.text.encode('utf-8')))
         counter += 1
-    print(counter)
+        print(counter)
 
 
 if __name__ == '__main__':

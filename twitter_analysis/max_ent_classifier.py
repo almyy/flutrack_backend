@@ -65,7 +65,7 @@ class MaxEntClassifier:
         return self.related_classifier.classify(self.extract_features(self.get_feature_vector(processed_tweet)))
 
     def show_informative_features(self, n):
-        return self.related_classifier.show_most_informative_features(n), self.awareness_classifier.show_most_informative_features(n)
+        return self.related_classifier.show_most_informative_features(n, show='pos'), self.awareness_classifier.show_most_informative_features(n)
 
     def train_classifier(self, training_data_file, classifier_dump_file, feature_list_file, classifier_type):
         training_data = csv.reader(codecs.open(training_data_file, 'r', encoding='UTF-8'), delimiter=',', quotechar='|')
@@ -107,12 +107,13 @@ if __name__ == '__main__':
     classifier = MaxEntClassifier(stop_words_file='data/stopwords.txt',
                                   related_training_data_file='data/training_data.csv',
                                   awareness_training_data_file='data/training_data_awareness_v2.csv',
-                                  needs_training=False, related_classifier_dump_file='data/classifier_dump.pickle',
-                                  awareness_classifier_dump_file='data/awareness_nb_classifier_dump.pickle',
-                                  feature_list_file='data/feature_list.txt', classifier_type='nb')
+                                  needs_training=False, related_classifier_dump_file='data/maxent_classifier_dump.pickle',
+                                  awareness_classifier_dump_file='data/awareness_maxent_classifier_dump.pickle',
+                                  feature_list_file='data/feature_list.txt', classifier_type='maxent')
     negative_test_tweet = "Flu news: This just in. Swine flu is coming again. Take your vaccines!"
     positive_test_tweet = "Im getting the flu I think. High fever, coughing and sore throat."
     should_be_related_and_infection = "Coughing. Sore throat feeling worse. Think im getting the flu."
     should_be_related_and_awareness = "Hope everyone know that swine flu is around. Spread the word! If you have fever, visit the doctor"
-
-    print(classifier.show_informative_features(20))
+    # related = classifier.classify_related(should_be_related_and_awareness)
+    # awareness = classifier.classify_awareness(should_be_related_and_awareness)
+    print(classifier.show_informative_features(10))

@@ -19,12 +19,20 @@ def lookup_tweet(tweet):
     params = {
         'latlng': latlng,
         'key': geo_api_key,
-        'result_type': 'administrative_area_level_1'
+        'result_type': 'locality'
     }
     url = 'https://maps.googleapis.com/maps/api/geocode/json'
     result = requests.get(url, params).json()
-    city_name = result['results'][0]['address_components'][0]['long_name']
+    if len(result['results']) > 0:
+        for component in result['results'][0]['address_components']:
+            print(component['types'])
+            if 'locality' in component['types']:
+                return component['long_name']
+        # return result['results'][0]['address_components'][0]['long_name']
+    else:
+        return 'Unknown location'
 
 if __name__ == '__main__':
-    cursor = collection.find_one()
-    lookup_tweet(cursor)
+    cursor = collection.find()
+    for doc in cursor:
+        print(lookup_tweet(doc))
