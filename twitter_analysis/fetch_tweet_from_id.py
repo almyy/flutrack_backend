@@ -1,7 +1,31 @@
 import configparser
-import codecs
+import json
+import os
 
+import requests
 import tweepy
+from pymongo import MongoClient
+
+geo_api_key = os.environ.get('GEOLOCATION_KEY')
+mongo_uri = os.environ.get('MONGOLAB_URI')
+
+if mongo_uri:
+    client = MongoClient(mongo_uri)
+    print('client connected')
+    db = client.heroku_k99m6wnb
+    cities = db.cities
+    tweets = db.tweets
+    test_tweets = db.test_tweets
+    test_tweets2012 = db.test_tweets2012
+
+else:
+    client = MongoClient('mongodb://localhost:27017/')
+    db = client.flutrack
+    cities = db.cities
+    tweets = db.tweets
+    test_tweets = db.test_tweets
+    test_tweets2012 = db.test_tweets2012
+
 
 
 def fetch_from_id():
@@ -17,24 +41,32 @@ def fetch_from_id():
     auth.set_access_token(access_token, access_token_secret)
     api = tweepy.API(auth, wait_on_rate_limit=True)
 
-    id_data_file = 'data/AwarenessVsInfection2009TweetIDs.txt'
-    status_dump_file = 'data/training_data_awareness_v2.csv'
+    id_data_file = 'data/AwarenessVsInfection2012TweetIDs.txt'
     with open(id_data_file, 'r') as fr:
-        with codecs.open(status_dump_file, 'w', encoding='utf-8') as fw:
-            found_tweet = 0
-            for row in fr:
-                row = row.split(sep='\t')
+        id_list = []
+        for row in fr:
+            row = row.split(sep='\t')
+            id_list.append(row[0])
+            if len(id_list) == 99:
                 try:
-                    tweet = api.get_status(row[0])
-                    found_tweet += 1
-                    fw.write('|' + row[1].strip('\n') + '|,|' + tweet.text + '|\n')
-                    print("Found tweet no. " + str(found_tweet) + ": " + str(tweet.text.encode('utf-8')))
+                    tweet_results = api.statuses_lookup(id_list)
+                    for tweet in tweet_results:
+                        if tweet.user.location is not None:
+                            tmp = requests.get('https://maps.googleapis.com/maps/api/geocode/json',
+                                               {'key': os.environ.get('GEOLOCATION_KEY'), 'address': tweet.user.location,
+                                                'result_type': 'locality'}).json()
+                            if len(tmp['results']) > 0:
+                                for component in tmp['results'][0]['address_components']:
+                                    if 'locality' in component['types']:
+                                        test_tweets2012.insert({
+                                            'text': 'Swine Flu',
+                                            'city': component['long_name']
+                                        })
+                    id_list = []
                 except tweepy.TweepError as e:
                     if e.api_code == 144:
                         print("Couldn't find a tweet with id " + row[0])
                     else:
                         print(e.reason)
 
-
-if __name__ == '__main__':
-    fetch_from_id()
+fetch_from_id()

@@ -31,9 +31,6 @@ def populate_from_json(data):
         lng = tweet['longitude']
         city = lookup_city_name(lat, lng)
         tweets.insert({
-            'username': tweet['user_name'],
-            'lat': lat,
-            'lng': lng,
             'text': tweet['tweet_text'],
             'city': city
         })
@@ -41,16 +38,20 @@ def populate_from_json(data):
 
 def populate_from_txt(file):
     with open(file) as f:
+        index = 0
         for row in f:
             row = row.split(sep=',')
             json = requests.get('https://maps.googleapis.com/maps/api/geocode/json',
                                 {'key': os.environ.get('GEOLOCATION_KEY'), 'address': row[0]}).json()
             cities.insert({
+                'index': index,
+                'zone': row[2].strip('\n'),
                 'city': row[0],
                 'location': json['results'][0]['geometry']['location'],
                 'bounding_box': json['results'][0]['geometry']['bounds'],
                 'population': row[1].strip('\n')
             })
+            index += 1
 
 
 def lookup_city_name(lat, lng):
@@ -82,15 +83,17 @@ def is_within_bounds(lat, lng, box):
 
 
 if __name__ == '__main__':
-    cities_array = []
-    cursor = cities.find()
-    for city in cursor:
-        cities_array.append(city['city'])
+    populate_from_txt('../prediction/data/dummypopulation.csv')
 
-    counter = 0
-    cursor = tweets.find()
-    for tweet in cursor:
-        if tweet['city'] in cities_array:
-            counter += 1
-
-    print(counter)
+    # cities_array = []
+    # cursor = cities.find()
+    # for city in cursor:
+    #     cities_array.append(city['city'])
+    #
+    # counter = 0
+    # cursor = tweets.find()
+    # for tweet in cursor:
+    #     if tweet['city'] in cities_array:
+    #         counter += 1
+    #
+    # print(counter)
