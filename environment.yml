@@ -4,9 +4,9 @@ dependencies:
   - requests
   - wheel
   - django
+  - gunicorn
   - pip:
     - tweepy
-    - gunicorn
     - requests-oauthlib
     - requests
     - oauthlib
