@@ -16,4 +16,3 @@ dependencies:
     - whitenoise
     - pymongo
     - xlrd
-    - csv
