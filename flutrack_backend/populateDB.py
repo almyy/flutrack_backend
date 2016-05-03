@@ -31,9 +31,6 @@ def populate_from_json(data):
         lng = tweet['longitude']
         city = lookup_city_name(lat, lng)
         tweets.insert({
-            'username': tweet['user_name'],
-            'lat': lat,
-            'lng': lng,
             'text': tweet['tweet_text'],
             'city': city
         })
