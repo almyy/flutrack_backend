@@ -1,1 +1,1 @@
-web: gunicorn flutrack_backend.wsgi:application --log-file
+web: gunicorn flutrack_backend.wsgi:application --log-file -
