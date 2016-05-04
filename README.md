@@ -16,7 +16,7 @@ The API is hosted at flutrack-backend.herokuapp.com, and has two publicly availa
 |GET /prediction|Returns a list of an entire pandemic forecast, where each element represents one day in the forecast. Each day is represented as a list of all the cities included in the forecast with their respective morbidity and location.|
 
 ## Front-end
-As a visualized interface to this API, we have created a simple single-page front-end. It's hosted at [flutrack.almyy.xyz], and the open-source project can be found at [GitHub](https://github.com/almyy/flutrack_frontend).
+As a visualized interface to this API, we have created a simple single-page front-end. It's hosted at [flutrack.almyy.xyz](flutrack.almyy.xyz), and the open-source project can be found at [GitHub](https://github.com/almyy/flutrack_frontend).
 
 ## Installation
 Work in progress.
