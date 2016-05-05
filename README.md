@@ -41,12 +41,7 @@ We have used Python 3.5.1, but should work on all installations over version 3.0
 After you have downloaded Python and the project, you can navigate into the project directory, and install the following required libraries using pip:
 
 ```
-pip install django
-pip install djangorestframework
-pip install tweepy
-pip install requests
-pip install pymongo
-pip install xlrd
+pip install django djangorestframework tweepy requests pymongo xlrd
 ```
 
 Django and Django Rest Framework are used to setup the API, Tweepy is used for utilizing the Twitter API, Requests makes it easier to make HTTP requests, Pymongo is used to communicate with our MongoDB instance, and xlrd is used to read .xls-files.
@@ -55,13 +50,24 @@ Django and Django Rest Framework are used to setup the API, Tweepy is used for u
 Now that you have everything installed, you should be able to run a local instance of the API. First you need to populate the database with data, so that it has some data to calculate. This can be done by running the script populateDB.py. In the project root folder, run the following command:
 
 ```
-python flutrack_backend/populateDB.py
+cd flutrack_backend/
+python populateDB.py
 ```
 
-When the database is populated, the API is ready to be run. You can run the following command to start the API locally:
+The Django engine requires a secret key for authenticity, and you need to set this as an environment variable in your OS. For linux, this can be done with:
+
+```
+export SECRET_KEY=<arbitrary key>
+```
+
+where <arbitrary key> can be anything, although it should be a long and secure string.
+
+When the database is populated and the secret key is set, the API is ready to be run. You can run the following command to start the API locally:
 
 ```
 python manage.py runserver
 ```
 
-This hosts the API locally on localhost:8000, and can be browsed using e.g. [Postman](https://www.getpostman.com/).
+This hosts the API locally on localhost:8000, and can be browsed using e.g. [Postman](https://www.getpostman.com/). When running locally, the API also serves a browsable version through browsers, so you can visit the API in any browser.
+
+Example request: GET localhost:8000/prediction (Note that this may take a while)
