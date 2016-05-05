@@ -22,7 +22,7 @@ city_names = []
 for city in dcp.city_list:
     city_names.append(city.name)
 
-for doc in test_tweets.find():
+for doc in tweets.find():
     if doc['city'] in city_names:
         tweet_list[city_names.index(doc['city'])] += 1
 
