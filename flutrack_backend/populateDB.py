@@ -21,7 +21,7 @@ else:
 
 
 def populate_from_flutrack_api():
-    r = requests.get("http://api.flutrack.org/?time=14")
+    r = requests.get("http://api.flutrack.org/?time=28")
     data = r.json()
     populate_from_json(data)
 
@@ -62,9 +62,8 @@ def lookup_city_name(lat, lng):
         bounds = document['bounding_box']
         if is_within_bounds(lat, lng, bounds):
             return document['city']
-
-    return 'How about no'
-
+    cursor.rewind()
+    return "Unknown city"
     # latlng = lat + ',' + lng
     # geo_api_key = os.environ.get('GEOLOCATION_KEY')
     # params = {
@@ -78,7 +77,7 @@ def lookup_city_name(lat, lng):
     #     for component in result['results'][0]['address_components']:
     #         if 'locality' in component['types']:
     #             return component['long_name']
-    # else:
+    # # else:
     #     return 'Unknown city'
 
 
