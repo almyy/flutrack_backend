@@ -47,20 +47,14 @@ pip install django djangorestframework tweepy requests pymongo xlrd
 Django and Django Rest Framework are used to setup the API, Tweepy is used for utilizing the Twitter API, Requests makes it easier to make HTTP requests, Pymongo is used to communicate with our MongoDB instance, and xlrd is used to read .xls-files.
 
 ## Running the API
-Now that you have everything installed, you should be able to run a local instance of the API. First you need to populate the database with data, so that it has some data to calculate. This can be done by running the script populateDB.py. In the project root folder, run the following command:
+Now that you have everything installed, you should be able to run a local instance of the API. First you need to populate the database with data, so that it has some data to calculate. This can be done by running the setup.py script. In the project root folder, run the following command:
 
 ```
-cd flutrack_backend/
-python populateDB.py
+python setup.py
 ```
 
-The Django engine requires a secret key for authenticity, and you need to set this as an environment variable in your OS. For linux, this can be done with:
-
-```
-export SECRET_KEY=<arbitrary key>
-```
-
-where <arbitrary key> can be anything, although it should be a long and secure string.
+This step may take a while.
+This will populate the database with the required cities, as well as some updated tweets from the Flutrack API. The script also sets an environment variable called SECRET_KEY, which Django uses for key generation. If you ever want to deploy the API to a production server, this key should be changed and hidden.
 
 When the database is populated and the secret key is set, the API is ready to be run. You can run the following command to start the API locally:
 
