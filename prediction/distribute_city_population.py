@@ -223,7 +223,9 @@ def forecast(update_forecast):
     index_city = 9
     forecast_obj = []
     if not update_forecast:
-        forecast_obj = db.forecast.find_one()
+        cursor = db.forecast.find()
+        for doc in cursor:
+            forecast_obj = doc
     # else:
     #     initiate_validation_results(index_city)
     #     for t in range(0, forecast_horizon):
