@@ -1,6 +1,7 @@
 from pymongo import MongoClient
 import requests
 import os
+import json
 import pprint
 
 geo_api_key = os.environ.get('GEOLOCATION_KEY')
@@ -13,6 +14,9 @@ if mongo_uri:
     cities = db.cities
     tweets = db.tweets
     cursor = cities.find()
+    city_bounds = []
+    for document in cursor:
+        city_bounds.append({'box': document['bounding_box'], 'city': document['city']})
 else:
     client = MongoClient('mongodb://localhost:27017/')
     db = client.flutrack
@@ -21,20 +25,26 @@ else:
 
 
 def populate_from_flutrack_api():
-    r = requests.get("http://api.flutrack.org/?time=28")
-    data = r.json()
+    r = requests.get("http://api.flutrack.org/?time=60")
+    data = json.loads(r.text)
+    # print(data)
+    # print(json.dumps(data))
     populate_from_json(data)
 
 
 def populate_from_json(data):
-    results = []
+    result = []
     for tweet in data:
         lat = tweet['latitude']
         lng = tweet['longitude']
         city = lookup_city_name(lat, lng)
-        results.append({'text': tweet['tweet_text'], 'city': city, 'date': tweet['tweet_date']})
+        result.append({
+            'text': tweet['tweet_text'],
+            'city': city,
+            'date': tweet['tweet_date']
+        })
+    tweets.insert(result)
 
-    tweets.insert(results)
 
 
 def populate_from_txt(file):
@@ -55,13 +65,10 @@ def populate_from_txt(file):
             index += 1
 
 
-
-
 def lookup_city_name(lat, lng):
-    for document in cursor:
-        bounds = document['bounding_box']
-        if is_within_bounds(lat, lng, bounds):
-            return document['city']
+    for row in city_bounds:
+        if is_within_bounds(lat, lng, row['box']):
+            return row['city']
     cursor.rewind()
     return "Unknown city"
     # latlng = lat + ',' + lng
