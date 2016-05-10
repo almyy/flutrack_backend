@@ -8,7 +8,7 @@ from prediction.distribution_initiation import init_distributions
 
 # city_matrix = airport.create_dummy_matrix()
 # city_matrix = airport.create_grais_matrix()
-city_matrix = airport.get_travel_matrix(1)
+city_matrix = airport.get_travel_matrix()
 infection_distribution = init_distributions()
 city_list = []
 city_population_file = os.path.abspath(os.path.dirname(__file__)) + '/data/data.csv'

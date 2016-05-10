@@ -2,10 +2,10 @@ from pymongo import MongoClient
 import requests
 import os
 import json
-import pprint
 
 geo_api_key = os.environ.get('GEOLOCATION_KEY')
 mongo_uri = os.environ.get('MONGOLAB_URI')
+
 if mongo_uri:
     client = MongoClient(mongo_uri)
     print('client connected')
@@ -24,11 +24,9 @@ else:
     tweets = db.tweets
 
 
-def populate_from_flutrack_api():
+def populate_tweets_from_flutrack_api():
     r = requests.get("http://api.flutrack.org/?time=60")
     data = json.loads(r.text)
-    # print(data)
-    # print(json.dumps(data))
     populate_from_json(data)
 
 
@@ -46,15 +44,15 @@ def populate_from_json(data):
     tweets.insert(result)
 
 
-
-def populate_from_txt(file):
+def populate_cities_from_text(file):
+    result = []
     with open(file) as f:
         index = 0
         for row in f:
             row = row.split(sep=',')
             json = requests.get('https://maps.googleapis.com/maps/api/geocode/json',
                                 {'key': os.environ.get('GEOLOCATION_KEY'), 'address': row[0]}).json()
-            cities.insert({
+            result.append({
                 'index': index,
                 'zone': row[2].strip('\n'),
                 'city': row[0],
@@ -63,6 +61,7 @@ def populate_from_txt(file):
                 'population': row[1].strip('\n')
             })
             index += 1
+    cities.insert(result)
 
 
 def lookup_city_name(lat, lng):
@@ -71,21 +70,7 @@ def lookup_city_name(lat, lng):
             return row['city']
     cursor.rewind()
     return "Unknown city"
-    # latlng = lat + ',' + lng
-    # geo_api_key = os.environ.get('GEOLOCATION_KEY')
-    # params = {
-    #     'latlng': latlng,
-    #     'key': geo_api_key,
-    #     'result_type': 'locality'
-    # }
-    # url = 'https://maps.googleapis.com/maps/api/geocode/json'
-    # result = requests.get(url, params).json()
-    # if len(result['results']) > 0:
-    #     for component in result['results'][0]['address_components']:
-    #         if 'locality' in component['types']:
-    #             return component['long_name']
-    # # else:
-    #     return 'Unknown city'
+
 
 
 def is_within_bounds(lat, lng, box):
@@ -93,19 +78,10 @@ def is_within_bounds(lat, lng, box):
             box['southwest']['lng']) < float(lng) < float(box['northeast']['lng'])
 
 
-if __name__ == '__main__':
-    # populate_from_txt('../prediction/data/dummypopulation.csv')
+def populate_collections():
+    populate_tweets_from_flutrack_api()
+    populate_cities_from_text('data/cities.csv')
 
-    populate_from_flutrack_api()
-    # cities_array = []
-    # cursor = cities.find()
-    # for city in cursor:
-    #     cities_array.append(city['city'])
-    #
-    # counter = 0
-    # cursor = tweets.find()
-    # for tweet in cursor:
-    #     if tweet['city'] in cities_array:
-    #         counter += 1
-    #
-    # print(counter)
+
+if __name__ == '__main__':
+    populate_collections()

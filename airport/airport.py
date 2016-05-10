@@ -3,6 +3,7 @@ import requests
 import json
 import xlrd
 import os
+from pymongo import MongoClient
 
 airport_file = os.path.abspath(os.path.dirname(__file__)) + '/data/airports.json'
 cities = os.path.abspath(os.path.dirname(__file__)) + '/data/cities.txt'
@@ -13,6 +14,13 @@ dummy_matrix_file = os.path.abspath(os.path.dirname(__file__)) + '/data/dummy_ma
 grais_matrix_file = os.path.abspath(os.path.dirname(__file__)) + '/data/grais_matrix.xlsx'
 city_list = []
 matrix_size = 52
+
+mongo_uri = os.environ.get('MONGOLAB_URI')
+
+if mongo_uri:
+    client = MongoClient(mongo_uri)
+    print('Connected to MongoDB')
+    db = client.heroku_k99m6wnb
 
 
 # Sort data from airport.api.aero on origin and destination airports.
@@ -141,14 +149,19 @@ def create_grais_matrix():
 
 
 # Returns the city matrix needed for prediction
-def get_travel_matrix(file):
-    if file == -1:
-        filename = t100_2000
-    else:
-        filename = t100
+def get_travel_matrix():
     airports = map_airports_to_cities(init_city_dictionary(), get_flight_data_local())
-    data = read_air_travel_data(filename)
+    data = read_air_travel_data(t100)
     return init_city_travel_matrix(airports, data)
 
 
-init_city_names()
+def initialize():
+    init_city_names()
+
+
+def populate_db():
+    db.airports = get_flight_data_local()
+
+
+initialize()
+populate_db()
