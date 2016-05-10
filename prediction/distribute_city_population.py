@@ -233,6 +233,6 @@ def forecast(update_forecast):
                 morbidity = int(city.daily_morbidity[t] / (city.population / 100000))
                 data.append({'city': city.name, 'morbidity': morbidity, 'location': city.location})
             forecast_obj.append(data)
-        db.forecast.insert(forecast_obj)
+        db.forecast.replace_one({}, forecast_obj, upsert=True)
     return forecast_obj
 
