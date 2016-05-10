@@ -221,11 +221,11 @@ def initiate_validation_results(index_city):
 
 def forecast(update_forecast):
     index_city = 9
-    initiate_validation_results(index_city)
     forecast_obj = []
     if not update_forecast:
         forecast_obj = db.forecast.find_one()
     else:
+        initiate_validation_results(index_city)
         for t in range(0, forecast_horizon):
             calculate_state_equations(t)
             data = []
