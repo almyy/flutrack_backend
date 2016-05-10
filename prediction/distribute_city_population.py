@@ -219,11 +219,11 @@ def initiate_validation_results(index_city):
     return city_list[City.index_city_id]
 
 
-def forecast():
+def forecast(update_forecast):
     index_city = 9
     initiate_validation_results(index_city)
     forecast_obj = []
-    if db.forecast.find().count() > 0:
+    if not update_forecast:
         forecast_obj = db.forecast.findOne()
     else:
         for t in range(0, forecast_horizon):
@@ -235,3 +235,4 @@ def forecast():
             forecast_obj.append(data)
         db.forecast.insert(forecast_obj)
     return forecast_obj
+
