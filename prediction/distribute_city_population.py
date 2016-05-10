@@ -223,7 +223,7 @@ def forecast(update_forecast):
     index_city = 9
     initiate_validation_results(index_city)
     forecast_obj = []
-    if update_forecast:
+    if not update_forecast:
         forecast_obj = db.forecast.findOne()
     else:
         for t in range(0, forecast_horizon):
@@ -233,6 +233,6 @@ def forecast(update_forecast):
                 morbidity = int(city.daily_morbidity[t] / (city.population / 100000))
                 data.append({'city': city.name, 'morbidity': morbidity, 'location': city.location})
             forecast_obj.append(data)
-        db.forecast.insert_one({'forecast_object': forecast_obj})
+        db.forecast.find_and_replace({'forecast_object': { '$not': { '$size': 0 }}}, forecast_obj)
     return forecast_obj
 
