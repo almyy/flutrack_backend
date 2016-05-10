@@ -224,15 +224,15 @@ def forecast(update_forecast):
     forecast_obj = []
     if not update_forecast:
         return db.forecast.find_one()['forecast_object']
-    # else:
-    #     initiate_validation_results(index_city)
-    #     for t in range(0, forecast_horizon):
-    #         calculate_state_equations(t)
-    #         data = []
-    #         for city in city_list:
-    #             morbidity = int(city.daily_morbidity[t] / (city.population / 100000))
-    #             data.append({'city': city.name, 'morbidity': morbidity, 'location': city.location})
-    #         forecast_obj.append(data)
-    #     # db.forecast.find_and_replace({'forecast_object': { '$not': { '$size': 0 }}}, forecast_obj)
+    else:
+        initiate_validation_results(index_city)
+        for t in range(0, forecast_horizon):
+            calculate_state_equations(t)
+            data = []
+            for city in city_list:
+                morbidity = int(city.daily_morbidity[t] / (city.population / 100000))
+                data.append({'city': city.name, 'morbidity': morbidity, 'location': city.location})
+            forecast_obj.append(data)
+        db.forecast.find_and_replace({'forecast_object': { '$not': { '$size': 0 }}}, forecast_obj)
     return forecast_obj
 
