@@ -224,7 +224,7 @@ def forecast(update_forecast):
     initiate_validation_results(index_city)
     forecast_obj = []
     if not update_forecast:
-        forecast_obj = db.forecast.findOne()
+        forecast_obj = db.forecast.find_one()
     else:
         for t in range(0, forecast_horizon):
             calculate_state_equations(t)
