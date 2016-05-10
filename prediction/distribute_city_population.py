@@ -223,11 +223,15 @@ def forecast():
     index_city = 9
     initiate_validation_results(index_city)
     forecast_obj = []
-    for t in range(0, forecast_horizon):
-        calculate_state_equations(t)
-        data = []
-        for city in city_list:
-            morbidity = int(city.daily_morbidity[t] / (city.population / 100000))
-            data.append({'city': city.name, 'morbidity': morbidity, 'location': city.location})
-        forecast_obj.append(data)
+    if db.forecast.find().count() > 0:
+        forecast_obj = db.forecast.findOne()
+    else:
+        for t in range(0, forecast_horizon):
+            calculate_state_equations(t)
+            data = []
+            for city in city_list:
+                morbidity = int(city.daily_morbidity[t] / (city.population / 100000))
+                data.append({'city': city.name, 'morbidity': morbidity, 'location': city.location})
+            forecast_obj.append(data)
+        db.forecast.insert(forecast_obj)
     return forecast_obj
