@@ -1,6 +1,6 @@
 from prediction import distribute_city_population as dcp
 
-forecast_horizon = 365
+forecast_horizon = 400
 
 
 def comparison_forecast(city):
@@ -11,15 +11,15 @@ def comparison_forecast(city):
         morbidity = city.daily_morbidity[t]
         tmp_res += int(morbidity / (city.population / 100000))
         if t % 4 == 0:
-            if 0 < tmp_res < 10:
-                result.append('*')
-            elif 10 <= tmp_res <= 100:
-                result.append('-')
-            elif tmp_res > 100:
-                result.append('+')
-            else:
-                result.append(' ')
-            # result.append(tmp_res)
+            # if 0 < tmp_res < 10:
+            #     result.append('*')
+            # elif 10 <= tmp_res <= 100:
+            #     result.append('-')
+            # elif tmp_res > 100:
+            #     result.append('+')
+            # else:
+            #     result.append(' ')
+            result.append(tmp_res)
             tmp_res = 0
     return result
 
@@ -31,7 +31,7 @@ def get_peak_day_results():
     return sort_list
 
 
-index_city = dcp.initiate_validation_results(9)
+index_city = dcp.initiate_validation_results(15)
 for t in range(0, forecast_horizon):
     dcp.calculate_state_equations(t)
 

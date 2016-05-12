@@ -1,26 +1,25 @@
 import csv
 import requests
 import json
-import xlrd
 import os
+
+import xlrd
 from pymongo import MongoClient
+from bson.json_util import dumps, loads
 
-airport_file = os.path.abspath(os.path.dirname(__file__)) + '/data/airports.json'
-cities = os.path.abspath(os.path.dirname(__file__)) + '/data/cities.txt'
-t100 = os.path.abspath(os.path.dirname(__file__)) + '/data/t100market.csv'
-t100_2000 = os.path.abspath(os.path.dirname(__file__)) + '/data/t100market2000.csv'
-chosen_airports = os.path.abspath(os.path.dirname(__file__)) + '/data/chosen_airports.csv'
+# t100 = os.path.abspath(os.path.dirname(__file__)) + '/data/t100market.csv'
+# t100_2000 = os.path.abspath(os.path.dirname(__file__)) + '/data/t100market2000.csv'
+# chosen_airports = os.path.abspath(os.path.dirname(__file__)) + '/data/chosen_airports.csv'
 dummy_matrix_file = os.path.abspath(os.path.dirname(__file__)) + '/data/dummy_matrix.xlsx'
-grais_matrix_file = os.path.abspath(os.path.dirname(__file__)) + '/data/grais_matrix.xlsx'
-city_list = []
-matrix_size = 52
+# grais_matrix_file = os.path.abspath(os.path.dirname(__file__)) + '/data/grais_matrix.xlsx'
 
+matrix_size = 52
 mongo_uri = os.environ.get('MONGOLAB_URI')
 
-if mongo_uri:
-    client = MongoClient(mongo_uri)
-    print('Connected to MongoDB')
-    db = client.heroku_k99m6wnb
+db = MongoClient(mongo_uri).heroku_k99m6wnb
+city_collection = db.cities
+transportation_collection = db.transportation_matrix
+city_list = []
 
 
 # Sort data from airport.api.aero on origin and destination airports.
@@ -52,33 +51,30 @@ def get_flight_data():
     r = requests.get('https://airport.api.aero/airport', params=params)
     result = r.text.replace("callback(", "").replace(")", "")
     result_json = json.loads(result)
-    with open(airport_file, 'w') as f:
-        json.dump(result_json, f)
     return result_json
 
 
-# Get an instance of the queried flight data stored locally.
+# Get an instance of the queried flight data stored in the database.
 def get_flight_data_local():
-    with open(airport_file) as data:
-        result = json.load(data)
-    return result
-
-
-# Initiate an alphabetical list of the cities used in the matrix.
-def init_city_names():
-    f = open(cities)
-    for line in f:
-        city_list.append(line.replace("\n", ""))
-    f.close()
-
+    result = dumps(db.airports.find())
+    result = loads(result)
+    return result[0]
 
 # Initiate a dictionary of matrix cities, with city name as key.
+# def init_city_dictionary():
+#     res_dict = {}
+#     f = open(cities)
+#     for line in f:
+#         res_dict[line.replace("\n", "")] = []
+#     f.close()
+#     return res_dict
+
+
 def init_city_dictionary():
     res_dict = {}
-    f = open(cities)
-    for line in f:
-        res_dict[line.replace("\n", "")] = []
-    f.close()
+    for row in city_collection.find():
+        res_dict[row['city']] = []
+        city_list.append(row['city'])
     return res_dict
 
 
@@ -98,11 +94,10 @@ def get_city_index(airport_code, airports):
     return -1
 
 
-def write_airports_to_file(shortened):
-    # TODO implement this method for faster initialization of airport codes.
-    result_file = open(chosen_airports, 'w')
-    wr = csv.writer(result_file, dialect='excel')
-    wr.writerow(shortened)
+# def write_airports_to_file(shortened):
+#     result_file = open(chosen_airports, 'w')
+#     wr = csv.writer(result_file, dialect='excel')
+#     wr.writerow(shortened)
 
 
 # Initiate the matrix with travel data between the cities.
@@ -121,47 +116,46 @@ def init_city_travel_matrix(airports, data):
     return city_matrix
 
 
+def get_transportation_matrix():
+    result_matrix = []
+    print("yolo")
+    for document in transportation_collection.find():
+        result_matrix.append(document['travel'])
+        print("yolo")
+    return result_matrix
+
+
 # Reading the matrix from Rvachev & Longini's original paper.
-def create_dummy_matrix():
-    wkb = xlrd.open_workbook(dummy_matrix_file)
-    sheet = wkb.sheet_by_index(0)
-    _result = []
+# def create_dummy_matrix():
+#     wkb = xlrd.open_workbook(dummy_matrix_file)
+#     sheet = wkb.sheet_by_index(0)
+#     _result = []
+#
+#     for row in range(1, sheet.nrows):
+#         _row = []
+#         for col in range(1, sheet.ncols):
+#             _row.append(sheet.cell_value(row, col))
+#         _result.append(_row)
+#     return _result
+#
+#
+# Reading the matrix from Grais et al's paper.
+# def create_grais_matrix():
+#     wkb = xlrd.open_workbook(grais_matrix_file)
+#     sheet = wkb.sheet_by_index(0)
+#     _result = []
+#
+#     for row in range(1, sheet.nrows):
+#         _row = []
+#         for col in range(1, sheet.ncols):
+#             _row.append(sheet.cell_value(row, col))
+#         _result.append(_row)
+#     return _result
 
-    for row in range(1, sheet.nrows):
-        _row = []
-        for col in range(1, sheet.ncols):
-            _row.append(sheet.cell_value(row, col))
-        _result.append(_row)
-    return _result
-
-
-def create_grais_matrix():
-    wkb = xlrd.open_workbook(grais_matrix_file)
-    sheet = wkb.sheet_by_index(0)
-    _result = []
-
-    for row in range(1, sheet.nrows):
-        _row = []
-        for col in range(1, sheet.ncols):
-            _row.append(sheet.cell_value(row, col))
-        _result.append(_row)
-    return _result
-
-
-# Returns the city matrix needed for prediction
-def get_travel_matrix():
-    airports = map_airports_to_cities(init_city_dictionary(), get_flight_data_local())
-    data = read_air_travel_data(t100)
-    return init_city_travel_matrix(airports, data)
-
-
-def initialize():
-    init_city_names()
-
-
-def populate_db():
-    db.airports = get_flight_data_local()
-
-
-initialize()
-populate_db()
+# # Returns the city matrix needed for prediction
+# def calculate_travel_matrix():
+#     airports = map_airports_to_cities(init_city_dictionary(), get_flight_data_local())
+#     print(init_city_dictionary())
+#     print(city_list)
+#     data = read_air_travel_data(t100)
+#     return init_city_travel_matrix(airports, data)

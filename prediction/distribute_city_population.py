@@ -1,35 +1,34 @@
-import csv
 import os
 
 from pymongo import MongoClient
-
 from airport import airport
-from prediction.distribution_initiation import init_distributions
 
 # city_matrix = airport.create_dummy_matrix()
 # city_matrix = airport.create_grais_matrix()
-city_matrix = airport.get_travel_matrix()
-infection_distribution = init_distributions()
-city_list = []
-city_population_file = os.path.abspath(os.path.dirname(__file__)) + '/data/data.csv'
-dummy_population_file = os.path.abspath(os.path.dirname(__file__)) + '/data/dummypopulation.csv'
-grais_population_file = os.path.abspath(os.path.dirname(__file__)) + '/data/grais_population.csv'
-
-length_of_incubation_period = 2  # tau1
-length_of_infection_period = 8  # tau2
-daily_infectious_contact_rate = 1.055  # lambda #TODO Find a correct lambda value
-fraction_of_susceptible_population = 0.641  # alpha #TODO Find a correct alpha value
-fraction_of_newly_ill_reported = 0.3  # beta. #TODO Set a correct beta value
-
-forecast_horizon = 440  # T
-forecast_beginning = 164    # 12. juni
-periodic_swing_T1 = 275     # 1. October
-periodic_swing_T2 = 92     # 1. April
-
+city_matrix = airport.get_transportation_matrix()
+for row in city_matrix:
+    print(row)
+infection_distribution = [[1, 0.7, 0.2, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 0.3, 0.77, 0.82, 0.54, 0.3, 0.15, 0.06, 0.01, 0],
+                          [0, 0, 0.03, 0.18, 0.46, 0.7, 0.85, 0.94, 0.99, 1]]
 monthly_scaling_south_north = {-1: [0.10, 0.25, 0.55, 0.70, 0.85, 1.0, 1.0, 0.85, 0.70, 0.55, 0.25, 0.10],
                                0: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
                                1: [1.0, 0.85, 0.70, 0.55, 0.25, 0.10, 0.10, 0.25, 0.55, 0.70, 0.85, 1.0]}
+city_list = []
 
+# dummy_population_file = os.path.abspath(os.path.dirname(__file__)) + '/data/dummypopulation.csv'
+# grais_population_file = os.path.abspath(os.path.dirname(__file__)) + '/data/grais_population.csv'
+
+length_of_incubation_period = 2  # tau1
+length_of_infection_period = 8  # tau2
+daily_infectious_contact_rate = 1.055  # lambda
+fraction_of_susceptible_population = 0.641  # alpha
+fraction_of_newly_ill_reported = 0.3  # beta
+
+forecast_horizon = 440  # T
+forecast_beginning = 164  # 12. juni
+periodic_swing_T1 = 275  # 1. October
+periodic_swing_T2 = 92  # 1. April
 
 mongo_uri = os.environ.get('MONGOLAB_URI')
 
@@ -39,7 +38,7 @@ if mongo_uri:
     db = client.heroku_k99m6wnb
     cities = db.cities
 else:
-    cities = 0
+    # cities = 0
     print('Couldnt connect to DB')
 
 
@@ -48,22 +47,8 @@ def init_city_list():
         if len(city_list) == 0:
             for doc in cities.find():
                 city_list.append(City(doc['index'], doc['city'], doc['population'], doc['location'], int(doc['zone'])))
-    else:
-        with open(city_population_file) as csvfile:
-            reader = csv.reader(csvfile)
-            index = 0
-            for row in reader:
-                city_list.append(City(index, row[0], float(row[1]), {}, 0))
-                index += 1
-
-
-def init_dummy_city_list():
-    with open(grais_population_file) as csvfile:
-        reader = csv.reader(csvfile)
-        index = 0
-        for row in reader:
-            city_list.append(City(index, row[0], float(row[1]), {}, int(row[2])))
-            index += 1
+    for city in city_list:
+        print(city)
 
 
 # return f(time) (2)
@@ -127,7 +112,7 @@ def initiate_influenza():
     for city in city_list:
         city.sus_res[0] = city.population * fraction_of_susceptible_population  # Equation 20
         if city.id == City.index_city_id:
-            city.lat_res[0, 0] = 0.00001 * city.population      # Equation 19
+            city.lat_res[0, 0] = 0.00001 * city.population  # Equation 19
             city.inf_res[0, 0] = 0
             for tau in range(1, length_of_infection_period + 1):
                 city.lat_res[0, -tau] = city.lat_res[0, 1 - tau] * (1 / 1.24)
@@ -153,9 +138,9 @@ def calculate_state_equations(t):
         city.sus_res[t + 1] = city.apply_omega_susceptible(t) - city.lat_res[0, t]
 
         for tau in range(1, length_of_incubation_period + 1):
-                res = city.apply_omega_latent(tau, t)
-                city.lat_res[tau, t + 1] = (1 - latent_becomes_infectious(tau)) * res
-                city.inf_res[tau, t + 1] = latent_becomes_infectious(tau) * res + ((1 - infectious_recovers(tau)) * city.inf_res[tau, t])
+            res = city.apply_omega_latent(tau, t)
+            city.lat_res[tau, t + 1] = (1 - latent_becomes_infectious(tau)) * res
+            city.inf_res[tau, t + 1] = latent_becomes_infectious(tau) * res + ((1 - infectious_recovers(tau)) * city.inf_res[tau, t])
 
         for tau in range(length_of_incubation_period + 1, length_of_infection_period + 1):
             city.inf_res[tau, t + 1] = ((1 - infectious_recovers(tau)) * city.inf_res[tau, t])
@@ -204,14 +189,13 @@ class City:
             result = 0
         return result
 
-
     def __str__(self):
         return "ID: " + str(self.id) + " \tName: " + self.name + " \t Population: \t" + str(self.population)
 
 
 def initiate_validation_results(index_city):
-    init_dummy_city_list()
-    # init_city_list()
+    # init_dummy_city_list()
+    init_city_list()
     City.index_city_id = index_city
     first_travel_day = 0
     initiate_influenza()

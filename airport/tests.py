@@ -6,7 +6,7 @@ class AirportTestCase(unittest.TestCase):
     def setUp(self):
         self.city_names = apm.city_list
         self.city_dictionary = apm.init_city_dictionary()
-        self.travel_matrix = apm.get_travel_matrix()
+        self.travel_matrix = apm.get_transportation_matrix()
         self.passengers_lax_jfk = 996370
         self.passengers_jfk_lax = 986385
         self.passengers_lga_lax = 3850
@@ -14,6 +14,7 @@ class AirportTestCase(unittest.TestCase):
 
     def test_size_of_city_list(self):
         size = len(self.city_names)
+        print(self.city_names)
         self.assertEqual(size, 52, "Wrong size of city list")
 
     def test_size_of_matrix(self):
