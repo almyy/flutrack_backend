@@ -1,6 +1,7 @@
 from pymongo import MongoClient
 import requests
 import os
+import json
 import pprint
 
 geo_api_key = os.environ.get('GEOLOCATION_KEY')
@@ -9,9 +10,13 @@ if mongo_uri:
     client = MongoClient(mongo_uri)
     print('client connected')
     db = client.heroku_k99m6wnb
+    db.tweets.drop()
     cities = db.cities
     tweets = db.tweets
-
+    cursor = cities.find()
+    city_bounds = []
+    for document in cursor:
+        city_bounds.append({'box': document['bounding_box'], 'city': document['city']})
 else:
     client = MongoClient('mongodb://localhost:27017/')
     db = client.flutrack
@@ -20,20 +25,26 @@ else:
 
 
 def populate_from_flutrack_api():
-    r = requests.get("http://api.flutrack.org/results.json")
-    data = r.json()
+    r = requests.get("http://api.flutrack.org/?time=60")
+    data = json.loads(r.text)
+    # print(data)
+    # print(json.dumps(data))
     populate_from_json(data)
 
 
 def populate_from_json(data):
+    result = []
     for tweet in data:
         lat = tweet['latitude']
         lng = tweet['longitude']
         city = lookup_city_name(lat, lng)
-        tweets.insert({
+        result.append({
             'text': tweet['tweet_text'],
-            'city': city
+            'city': city,
+            'date': tweet['tweet_date']
         })
+    tweets.insert(result)
+
 
 
 def populate_from_txt(file):
@@ -55,36 +66,37 @@ def populate_from_txt(file):
 
 
 def lookup_city_name(lat, lng):
-    cursor = cities.find()
-    for document in cursor:
-        bounds = document['bounding_box']
-        if is_within_bounds(lat, lng, bounds):
-            return document['city']
-
-    latlng = lat + ',' + lng
-    geo_api_key = os.environ.get('GEOLOCATION_KEY')
-    params = {
-        'latlng': latlng,
-        'key': geo_api_key,
-        'result_type': 'locality'
-    }
-    url = 'https://maps.googleapis.com/maps/api/geocode/json'
-    result = requests.get(url, params).json()
-    if len(result['results']) > 0:
-        for component in result['results'][0]['address_components']:
-            if 'locality' in component['types']:
-                return component['long_name']
-    else:
-        return 'Unknown city'
+    for row in city_bounds:
+        if is_within_bounds(lat, lng, row['box']):
+            return row['city']
+    cursor.rewind()
+    return "Unknown city"
+    # latlng = lat + ',' + lng
+    # geo_api_key = os.environ.get('GEOLOCATION_KEY')
+    # params = {
+    #     'latlng': latlng,
+    #     'key': geo_api_key,
+    #     'result_type': 'locality'
+    # }
+    # url = 'https://maps.googleapis.com/maps/api/geocode/json'
+    # result = requests.get(url, params).json()
+    # if len(result['results']) > 0:
+    #     for component in result['results'][0]['address_components']:
+    #         if 'locality' in component['types']:
+    #             return component['long_name']
+    # # else:
+    #     return 'Unknown city'
 
 
 def is_within_bounds(lat, lng, box):
-    return float(box['southwest']['lat']) < float(lat) < float(box['northeast']['lat']) and float(box['southwest']['lng']) < float(lng) < float(box['northeast']['lng'])
+    return float(box['southwest']['lat']) < float(lat) < float(box['northeast']['lat']) and float(
+            box['southwest']['lng']) < float(lng) < float(box['northeast']['lng'])
 
 
 if __name__ == '__main__':
-    populate_from_txt('../prediction/data/dummypopulation.csv')
+    # populate_from_txt('../prediction/data/dummypopulation.csv')
 
+    populate_from_flutrack_api()
     # cities_array = []
     # cursor = cities.find()
     # for city in cursor:

@@ -31,8 +31,8 @@ def sort_per_origin(list_input):
 
 
 # Initiate and sort the t100market database.
-def read_air_travel_data():
-    with open(t100_2000) as csv_file:
+def read_air_travel_data(filename):
+    with open(filename) as csv_file:
         reader = csv.DictReader(csv_file)
         origin_list = sort_per_origin(reader)
     return sorted(origin_list, key=lambda k: k[2])
@@ -141,9 +141,13 @@ def create_grais_matrix():
 
 
 # Returns the city matrix needed for prediction
-def get_travel_matrix():
+def get_travel_matrix(file):
+    if file == -1:
+        filename = t100_2000
+    else:
+        filename = t100
     airports = map_airports_to_cities(init_city_dictionary(), get_flight_data_local())
-    data = read_air_travel_data()
+    data = read_air_travel_data(filename)
     return init_city_travel_matrix(airports, data)
 
 
