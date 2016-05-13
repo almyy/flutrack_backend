@@ -63,7 +63,7 @@ for doc in tweets.find():
 for i in range(0, len(city_names)):
     last_mu = 0
     epidemic = True
-    print(city_names[i])
+    # print(city_names[i])
     for u in range(0, 3):
         if weeks[7 - u][i] != 0:
             mu = (weeks[7 - (u + 1)][i] / weeks[7 - u][i]) ** (1 / 7)
@@ -74,16 +74,37 @@ for i in range(0, len(city_names)):
             epidemic = False
             # if city_names[i] == 'Chicago':
             #     print(last_mu)
-        print(last_mu)
+        # print(last_mu)
     if last_mu < epidemic_constant:
         epidemic = False
     if epidemic:
-        print(" Mu: \t" + str(last_mu) + " City: " + city_names[i])
+        print()
+        # print(" Mu: \t" + str(last_mu) + " City: " + city_names[i])
 
     # print("Week1: " + str(weeks[0][i]) + " \tWeek2: " + str(weeks[1][i]) + "\tWeek 3: " +
     #       str(weeks[2][i]) + " \tWeek4: " + str(weeks[3][i]) + "\tWeek 5: " + str(weeks[4][i]) +
     #       " \tWeek6: " + str(weeks[5][i]) + "\tWeek 7: " + str(weeks[6][i]) + " \tWeek7: "
     #       + str(weeks[7][i]) + " \tCity: " + str(city_names[i]))
+
+db_cities = list(db.cities.find())
+
+
+def lookup_coords(city):
+    for db_city in db_cities:
+        if city == db_city['city']:
+            return db_city['location']
+
+
+def get_tweets_per_week():
+    returned_tweets = []
+    for i in weeks:
+        current = []
+        index = 0
+        for j in i:
+            current.append({'location': lookup_coords(city_names[index]), 'tweets': j})
+            index += 1
+        returned_tweets.append(current)
+    return returned_tweets
 
 print(count)
 
