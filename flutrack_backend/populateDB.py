@@ -1,5 +1,6 @@
 import csv
 
+import xlrd
 from pymongo import MongoClient
 import requests
 import os
@@ -11,6 +12,7 @@ mongo_uri = os.environ.get('MONGOLAB_URI')
 airport_file = os.path.abspath(os.path.dirname(__file__)) + '/data/airports.json'
 city_file = os.path.abspath(os.path.dirname(__file__)) + '/data/cities.csv'
 t100market = os.path.abspath(os.path.dirname(__file__)) + '/data/t100market.csv'
+dummy_matrix_file = os.path.abspath(os.path.dirname(__file__)) + '/data/dummy_matrix.xlsx'
 
 
 # Collect tweets from the last 60 days from the flutrack API.
@@ -86,15 +88,20 @@ def populate_transportation_matrix_from_csv(airport_data, data):
             shortened.append(airport)
 
     for row in data:
-        if row[0] in shortened and row[1] in shortened:
+        if row[0] in shortened and row[1] in shortened and row[2] != 0:
             origin_index = get_city_index(row[0], airport_data)
             destination_index = get_city_index(row[1], airport_data)
             city_matrix[origin_index][destination_index] += int(row[2] / 365)
+            city_matrix[destination_index][origin_index] += int(row[2] / 365)
+
     matrix_document = []
+    index = 0
     for row in city_matrix:
         matrix_document.append({
+            # city_list[index]: row
             'travel': row
         })
+        index += 1
     db.transportation_matrix.insert(matrix_document)
 
 
@@ -136,6 +143,25 @@ def map_airports_to_cities(api_lookup):
     return res_dict
 
 
+# Reading the matrix from Rvachev & Longini's original paper.
+def create_dummy_matrix():
+    wkb = xlrd.open_workbook(dummy_matrix_file)
+    sheet = wkb.sheet_by_index(0)
+    _result = []
+
+    for row in range(1, sheet.nrows):
+        _row = []
+        for col in range(1, sheet.ncols):
+            _row.append(sheet.cell_value(row, col))
+        _result.append(_row)
+    matrix_document = []
+    for row in _result:
+        matrix_document.append({
+            'travel': row
+        })
+    db.transportation_matrix.insert(matrix_document)
+
+
 def populate_collections():
     db.tweets.drop()
     db.transportation_matrix.drop()
@@ -144,6 +170,7 @@ def populate_collections():
     populate_tweets_from_flutrack_api()
     airp = populate_airports_from_json()
     populate_transportation_matrix_from_csv(map_airports_to_cities(airp), read_air_travel_data())
+    # create_dummy_matrix()
 
 
 if mongo_uri:

@@ -3,13 +3,9 @@ import requests
 import json
 import os
 
-import xlrd
 from pymongo import MongoClient
 from bson.json_util import dumps, loads
 
-# t100 = os.path.abspath(os.path.dirname(__file__)) + '/data/t100market.csv'
-# t100_2000 = os.path.abspath(os.path.dirname(__file__)) + '/data/t100market2000.csv'
-# chosen_airports = os.path.abspath(os.path.dirname(__file__)) + '/data/chosen_airports.csv'
 dummy_matrix_file = os.path.abspath(os.path.dirname(__file__)) + '/data/dummy_matrix.xlsx'
 # grais_matrix_file = os.path.abspath(os.path.dirname(__file__)) + '/data/grais_matrix.xlsx'
 
@@ -118,10 +114,8 @@ def init_city_travel_matrix(airports, data):
 
 def get_transportation_matrix():
     result_matrix = []
-    print("yolo")
     for document in transportation_collection.find():
         result_matrix.append(document['travel'])
-        print("yolo")
     return result_matrix
 
 

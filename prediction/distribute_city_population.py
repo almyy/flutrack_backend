@@ -6,8 +6,8 @@ from airport import airport
 # city_matrix = airport.create_dummy_matrix()
 # city_matrix = airport.create_grais_matrix()
 city_matrix = airport.get_transportation_matrix()
-for row in city_matrix:
-    print(row)
+# for row in city_matrix:
+#     print(row)
 infection_distribution = [[1, 0.7, 0.2, 0, 0, 0, 0, 0, 0, 0],
                           [0, 0.3, 0.77, 0.82, 0.54, 0.3, 0.15, 0.06, 0.01, 0],
                           [0, 0, 0.03, 0.18, 0.46, 0.7, 0.85, 0.94, 0.99, 1]]
@@ -47,8 +47,6 @@ def init_city_list():
         if len(city_list) == 0:
             for doc in cities.find():
                 city_list.append(City(doc['index'], doc['city'], doc['population'], doc['location'], int(doc['zone'])))
-    for city in city_list:
-        print(city)
 
 
 # return f(time) (2)
@@ -151,6 +149,15 @@ def calculate_state_equations(t):
         city.daily_morbidity.append(fraction_of_newly_ill_reported * morbidity)
 
 
+def clear_results():
+    for city in city_list:
+        city.lat_res = {}
+        city.sus_res = {}
+        city.inf_res = {}
+        city.daily_morbidity = []
+        city.peak_day = 0
+
+
 class City:
     index_city_id = 0
 
@@ -195,6 +202,7 @@ class City:
 
 def initiate_validation_results(index_city):
     # init_dummy_city_list()
+    clear_results()
     init_city_list()
     City.index_city_id = index_city
     first_travel_day = 0
