@@ -65,16 +65,16 @@ for i in range(0, len(city_names)):
             epidemic = False
             # if city_names[i] == 'Chicago':
             #     print(last_mu)
-    #     print(last_mu)
-    # if last_mu < epidemic_constant:
-    #     epidemic = False
-    # if epidemic:
-    #     print(" Mu: \t" + str(last_mu) + " City: " + city_names[i])
+        print(last_mu)
+    if last_mu < epidemic_constant:
+        epidemic = False
+    if epidemic:
+        print(" Mu: \t" + str(last_mu) + " City: " + city_names[i])
 
-    print("Week1: " + str(weeks[0][i]) + " \tWeek2: " + str(weeks[1][i]) + "\tWeek 3: " +
-          str(weeks[2][i]) + " \tWeek4: " + str(weeks[3][i]) + "\tWeek 5: " + str(weeks[4][i]) +
-          " \tWeek6: " + str(weeks[5][i]) + "\tWeek 7: " + str(weeks[6][i]) + " \tWeek7: "
-          + str(weeks[7][i]) + " \tCity: " + str(city_names[i]))
+    # print("Week1: " + str(weeks[0][i]) + " \tWeek2: " + str(weeks[1][i]) + "\tWeek 3: " +
+    #       str(weeks[2][i]) + " \tWeek4: " + str(weeks[3][i]) + "\tWeek 5: " + str(weeks[4][i]) +
+    #       " \tWeek6: " + str(weeks[5][i]) + "\tWeek 7: " + str(weeks[6][i]) + " \tWeek7: "
+    #       + str(weeks[7][i]) + " \tCity: " + str(city_names[i]))
 
 print(count)
 

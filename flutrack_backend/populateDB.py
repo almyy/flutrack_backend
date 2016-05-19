@@ -12,6 +12,7 @@ mongo_uri = os.environ.get('MONGOLAB_URI')
 airport_file = os.path.abspath(os.path.dirname(__file__)) + '/data/airports.json'
 city_file = os.path.abspath(os.path.dirname(__file__)) + '/data/cities.csv'
 t100market = os.path.abspath(os.path.dirname(__file__)) + '/data/t100market.csv'
+# t100market2000 = os.path.abspath(os.path.dirname(__file__)) + '/data/t100market2000.csv'
 dummy_matrix_file = os.path.abspath(os.path.dirname(__file__)) + '/data/dummy_matrix.xlsx'
 
 
@@ -90,9 +91,16 @@ def populate_transportation_matrix_from_csv(airport_data, data):
     for row in data:
         if row[0] in shortened and row[1] in shortened and row[2] != 0:
             origin_index = get_city_index(row[0], airport_data)
+            if row[0] in airport_data['Los Angeles'] or row[0] in airport_data['New York']:
+                if row[1] in airport_data['Los Angeles'] or row[1] in airport_data['New York']:
+                    print(row[2])
             destination_index = get_city_index(row[1], airport_data)
-            city_matrix[origin_index][destination_index] += int(row[2] / 365)
-            city_matrix[destination_index][origin_index] += int(row[2] / 365)
+            city_matrix[origin_index][destination_index] += row[2]
+            city_matrix[destination_index][origin_index] += row[2]
+
+    for i in range(0, 52):
+        for u in range(0, 52):
+            city_matrix[i][u] = int((city_matrix[i][u] / 365))
 
     matrix_document = []
     index = 0
@@ -116,6 +124,11 @@ def sort_per_origin(list_input):
             current_origin = [row['ORIGIN'], row['DEST'], int(float(row['PASSENGERS']))]
         else:
             current_origin[2] += int(float(row['PASSENGERS']))
+
+    for row in result:
+        if row[0] == 'LAX' or row[0] == 'LGA' or row[0] == 'JFK':
+            if row[1] == 'LAX' or row[1] == 'LGA' or row[1] == 'JFK':
+                print(row)
     result.pop(0)
     return result
 

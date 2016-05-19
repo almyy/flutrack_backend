@@ -4,17 +4,20 @@ import airport as apm
 
 class AirportTestCase(unittest.TestCase):
     def setUp(self):
-        self.city_names = apm.city_list
         self.city_dictionary = apm.init_city_dictionary()
+        self.city_names = apm.city_list
         self.travel_matrix = apm.get_transportation_matrix()
-        self.passengers_lax_jfk = 996370
-        self.passengers_jfk_lax = 986385
-        self.passengers_lga_lax = 3850
-        self.passengers_lax_lga = 2602
+        # self.passengers_lax_jfk = 996370
+        self.passengers_lax_jfk = 1440618
+        # self.passengers_jfk_lax = 986385
+        self.passengers_jfk_lax = 1417826
+        # self.passengers_lga_lax = 3850
+        self.passengers_lga_lax = 4380
+        # self.passengers_lax_lga = 2602
+        self.passengers_lax_lga = 3222
 
     def test_size_of_city_list(self):
         size = len(self.city_names)
-        print(self.city_names)
         self.assertEqual(size, 52, "Wrong size of city list")
 
     def test_size_of_matrix(self):
@@ -27,16 +30,16 @@ class AirportTestCase(unittest.TestCase):
         passengers_lax_lga = 0
         passengers_jfk_lax = 0
         passengers_lga_lax = 0
-
-        for row in apm.read_air_travel_data():
+        list = apm.read_air_travel_data(apm.t100market)
+        for row in list:
             if row[0] == 'LAX' and row[1] == 'JFK':
-                passengers_lax_jfk = row[2]
+                passengers_lax_jfk += row[2]
             if row[0] == 'LAX' and row[1] == 'LGA':
-                passengers_lax_lga = row[2]
+                passengers_lax_lga += row[2]
             if row[0] == 'JFK' and row[1] == 'LAX':
-                passengers_jfk_lax = row[2]
+                passengers_jfk_lax += row[2]
             if row[0] == 'LGA' and row[1] == 'LAX':
-                passengers_lga_lax = row[2]
+                passengers_lga_lax += row[2]
 
         self.assertEqual(passengers_lax_jfk, self.passengers_lax_jfk,
                          "Wrong passenger number for flights from LAX to JFK")
@@ -46,6 +49,19 @@ class AirportTestCase(unittest.TestCase):
                          "Wrong passenger number for flights from JFK to LAX")
         self.assertEqual(passengers_lga_lax, self.passengers_lga_lax,
                          "Wrong passenger number for flights from LGA to LAX")
+
+    def test_travel_matrix_calculates_correctly(self):
+        la_index = self.city_names.index('Los Angeles')
+        ny_index = self.city_names.index('New York')
+        travelers_between_new_york_and_los_angeles = self.travel_matrix[la_index][ny_index]
+        travelers_between_los_angeles_and_new_york = self.travel_matrix[ny_index][la_index]
+        expected_travelers = int((self.passengers_lax_lga + self.passengers_lax_jfk + self.passengers_jfk_lax + self.passengers_lga_lax) / 365)
+
+        self.assertEqual(travelers_between_los_angeles_and_new_york, travelers_between_new_york_and_los_angeles,
+                         "The matrix is not symmetric")
+        self.assertEqual(travelers_between_new_york_and_los_angeles, expected_travelers,
+                         "Wrong calculated daily travelers")
+
 
     def test_mapping_airports_to_cities(self):
         airports = apm.map_airports_to_cities(self.city_dictionary, apm.get_flight_data_local())

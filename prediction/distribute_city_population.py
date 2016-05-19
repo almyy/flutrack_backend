@@ -1,13 +1,11 @@
+import csv
 import os
 
 from pymongo import MongoClient
 from airport import airport
 
-# city_matrix = airport.create_dummy_matrix()
-# city_matrix = airport.create_grais_matrix()
-city_matrix = airport.get_transportation_matrix()
-# for row in city_matrix:
-#     print(row)
+city_matrix = airport.calculate_travel_matrix()
+
 infection_distribution = [[1, 0.7, 0.2, 0, 0, 0, 0, 0, 0, 0],
                           [0, 0.3, 0.77, 0.82, 0.54, 0.3, 0.15, 0.06, 0.01, 0],
                           [0, 0, 0.03, 0.18, 0.46, 0.7, 0.85, 0.94, 0.99, 1]]
@@ -17,7 +15,7 @@ monthly_scaling_south_north = {-1: [0.10, 0.25, 0.55, 0.70, 0.85, 1.0, 1.0, 0.85
 city_list = []
 
 # dummy_population_file = os.path.abspath(os.path.dirname(__file__)) + '/data/dummypopulation.csv'
-# grais_population_file = os.path.abspath(os.path.dirname(__file__)) + '/data/grais_population.csv'
+grais_population_file = os.path.abspath(os.path.dirname(__file__)) + '/data/grais_population.csv'
 
 length_of_incubation_period = 2  # tau1
 length_of_infection_period = 8  # tau2
@@ -47,6 +45,16 @@ def init_city_list():
         if len(city_list) == 0:
             for doc in cities.find():
                 city_list.append(City(doc['index'], doc['city'], doc['population'], doc['location'], int(doc['zone'])))
+
+
+def init_dummy_city_list():
+    if len(city_list) == 0:
+        with open(grais_population_file) as csvfile:
+            reader = csv.reader(csvfile)
+            index = 0
+            for row in reader:
+                city_list.append(City(index, row[0], float(row[1]), {}, int(row[2])))
+                index += 1
 
 
 # return f(time) (2)
@@ -201,8 +209,8 @@ class City:
 
 
 def initiate_validation_results(index_city):
-    # init_dummy_city_list()
     clear_results()
+    # init_dummy_city_list()
     init_city_list()
     City.index_city_id = index_city
     first_travel_day = 0
