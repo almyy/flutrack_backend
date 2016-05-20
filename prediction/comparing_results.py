@@ -31,20 +31,22 @@ def get_peak_day_results():
     return sort_list
 
 
-index_city = dcp.initiate_validation_results(9)
-for t in range(0, forecast_horizon):
-    dcp.calculate_state_equations(t)
+for attempt in range(0, 52):
+    index_city = dcp.initiate_validation_results(attempt)
+    for t in range(0, forecast_horizon):
+        dcp.calculate_state_equations(t)
+    plot = get_peak_day_results()
 
-plot = get_peak_day_results()
+    result_matrix = []
+    for city in reversed(plot):
+        row = [city.id, str(city.name), comparison_forecast(city)]
+        result_matrix.append(row)
+    s = [[str(e) for e in row] for row in result_matrix]
+    lens = [max(map(len, col)) for col in zip(*s)]
+    fmt = '\t'.join('{{:{}}}'.format(x) for x in lens)
+    table = [fmt.format(*row) for row in s]
+    print('\n'.join(table))
+    print(dcp.city_list[attempt])
 
-result_matrix = []
-for city in reversed(plot):
-    row = [city.id, str(city.name), comparison_forecast(city)]
-    result_matrix.append(row)
 
 
-s = [[str(e) for e in row] for row in result_matrix]
-lens = [max(map(len, col)) for col in zip(*s)]
-fmt = '\t'.join('{{:{}}}'.format(x) for x in lens)
-table = [fmt.format(*row) for row in s]
-print('\n'.join(table))

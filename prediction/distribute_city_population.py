@@ -8,7 +8,9 @@ from prediction.distribution_initiation import init_distributions
 
 # city_matrix = airport.create_dummy_matrix()
 # city_matrix = airport.create_grais_matrix()
-city_matrix = airport.get_travel_matrix(1)
+# city_matrix = airport.get_travel_matrix(1)
+city_matrix = []
+
 infection_distribution = init_distributions()
 city_list = []
 city_population_file = os.path.abspath(os.path.dirname(__file__)) + '/data/data.csv'
@@ -42,6 +44,9 @@ else:
     cities = 0
     print('Couldnt connect to DB')
 
+for document in db.transportation_matrix.find():
+    city_matrix.append(document['travel'])
+
 
 def init_city_list():
     if cities is not 0:
@@ -58,12 +63,13 @@ def init_city_list():
 
 
 def init_dummy_city_list():
-    with open(grais_population_file) as csvfile:
-        reader = csv.reader(csvfile)
-        index = 0
-        for row in reader:
-            city_list.append(City(index, row[0], float(row[1]), {}, int(row[2])))
-            index += 1
+    if len(city_list) == 0:
+        with open(grais_population_file) as csvfile:
+            reader = csv.reader(csvfile)
+            index = 0
+            for row in reader:
+                city_list.append(City(index, row[0], float(row[1]), {}, int(row[2])))
+                index += 1
 
 
 # return f(time) (2)
@@ -166,6 +172,15 @@ def calculate_state_equations(t):
         city.daily_morbidity.append(fraction_of_newly_ill_reported * morbidity)
 
 
+def clear_results():
+    for city in city_list:
+        city.lat_res = {}
+        city.sus_res = {}
+        city.inf_res = {}
+        city.daily_morbidity = []
+        city.peak_day = 0
+
+
 class City:
     index_city_id = 0
 
@@ -210,6 +225,7 @@ class City:
 
 
 def initiate_validation_results(index_city):
+    clear_results()
     init_dummy_city_list()
     # init_city_list()
     City.index_city_id = index_city
