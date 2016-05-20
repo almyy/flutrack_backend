@@ -29,8 +29,9 @@ def get_peak_day_results():
     sort_list = sorted(dcp.city_list, key=lambda l: (l.peak_day, l.name))
     return sort_list
 
+city_nr = 37
 for attempt in range(0, 1):
-    index_city = dcp.initiate_validation_results(15)
+    index_city = dcp.initiate_validation_results(city_nr)
     for t in range(0, forecast_horizon):
         dcp.calculate_state_equations(t)
     plot = get_peak_day_results()
@@ -43,5 +44,5 @@ for attempt in range(0, 1):
     fmt = '\t'.join('{{:{}}}'.format(x) for x in lens)
     table = [fmt.format(*row) for row in s]
     print('\n'.join(table))
-    print(str(attempt) + ": " + str(dcp.city_list[attempt]))
+    print(str(dcp.city_list[city_nr]))
 

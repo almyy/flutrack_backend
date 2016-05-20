@@ -11,8 +11,10 @@ mongo_uri = os.environ.get('MONGOLAB_URI')
 
 airport_file = os.path.abspath(os.path.dirname(__file__)) + '/data/airports.json'
 city_file = os.path.abspath(os.path.dirname(__file__)) + '/data/cities.csv'
+city_file_test = os.path.abspath(os.path.dirname(__file__)) + '/data/cities_test.csv'
+grais_city_file = os.path.abspath((os.path.dirname(__file__))) + '/data/grais_population.csv'
 t100market = os.path.abspath(os.path.dirname(__file__)) + '/data/t100market.csv'
-# t100market2000 = os.path.abspath(os.path.dirname(__file__)) + '/data/t100market2000.csv'
+t100market2000 = os.path.abspath(os.path.dirname(__file__)) + '/data/t100market2000.csv'
 dummy_matrix_file = os.path.abspath(os.path.dirname(__file__)) + '/data/dummy_matrix.xlsx'
 
 
@@ -38,24 +40,25 @@ def populate_tweets_from_json(data):
     tweets.insert(result)
 
 
+# Populate the database with the cities we want to track.
 def populate_cities_from_text():
     result = []
-    with open(city_file) as f:
+    with open(grais_city_file) as f:
         index = 0
         for row in f:
             row = row.split(sep=',')
             json_res = requests.get('https://maps.googleapis.com/maps/api/geocode/json',
                                     {'key': os.environ.get('GEOLOCATION_KEY'), 'address': row[0]}).json()
             print(row[0])
-
             result.append({
                 'index': index,
                 'zone': row[2].strip('\n'),
                 'city': row[0],
-                'location': json_res['results'][0]['geometry']['location'],
+                'location': json_res['results'][0]['geometry']['location'] if json_res['results'] is not None else 'Unknown',
                 'bounding_box': json_res['results'][0]['geometry']['bounds'],
                 'population': row[1].strip('\n')
             })
+
             index += 1
     cities.insert(result)
 
@@ -91,9 +94,6 @@ def populate_transportation_matrix_from_csv(airport_data, data):
     for row in data:
         if row[0] in shortened and row[1] in shortened and row[2] != 0:
             origin_index = get_city_index(row[0], airport_data)
-            if row[0] in airport_data['Los Angeles'] or row[0] in airport_data['New York']:
-                if row[1] in airport_data['Los Angeles'] or row[1] in airport_data['New York']:
-                    print(row[2])
             destination_index = get_city_index(row[1], airport_data)
             city_matrix[origin_index][destination_index] += row[2]
             city_matrix[destination_index][origin_index] += row[2]
@@ -135,7 +135,7 @@ def sort_per_origin(list_input):
 
 # Initiate and sort the t100market database.
 def read_air_travel_data():
-    with open(t100market) as csv_file:
+    with open(t100market2000) as csv_file:
         reader = csv.DictReader(csv_file)
         origin_list = sort_per_origin(reader)
     return sorted(origin_list, key=lambda k: k[2])
@@ -179,7 +179,6 @@ def populate_collections():
     db.tweets.drop()
     db.transportation_matrix.drop()
     db.airports.drop()
-    # populate_cities_from_text()
     populate_tweets_from_flutrack_api()
     airp = populate_airports_from_json()
     populate_transportation_matrix_from_csv(map_airports_to_cities(airp), read_air_travel_data())
@@ -191,6 +190,8 @@ if mongo_uri:
     cities = db.cities
     tweets = db.tweets
     airports = db.airports
+    db.cities.drop()
+    populate_cities_from_text()
     cursor = cities.find()
     city_bounds = []
     city_list = []
