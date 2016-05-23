@@ -52,7 +52,6 @@ def populate_cities_from_text():
                 'bounding_box': json_res['results'][0]['geometry']['bounds'],
                 'population': row[1].strip('\n')
             })
-
             index += 1
     cities.insert(result)
 
