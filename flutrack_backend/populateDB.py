@@ -1,6 +1,5 @@
 import csv
 
-import xlrd
 from pymongo import MongoClient
 import requests
 import os
@@ -11,11 +10,7 @@ mongo_uri = os.environ.get('MONGOLAB_URI')
 
 airport_file = os.path.abspath(os.path.dirname(__file__)) + '/data/airports.json'
 city_file = os.path.abspath(os.path.dirname(__file__)) + '/data/cities.csv'
-city_file_test = os.path.abspath(os.path.dirname(__file__)) + '/data/cities_test.csv'
-grais_city_file = os.path.abspath((os.path.dirname(__file__))) + '/data/grais_population.csv'
 t100market = os.path.abspath(os.path.dirname(__file__)) + '/data/t100market.csv'
-t100market2000 = os.path.abspath(os.path.dirname(__file__)) + '/data/t100market2000.csv'
-dummy_matrix_file = os.path.abspath(os.path.dirname(__file__)) + '/data/dummy_matrix.xlsx'
 
 
 # Collect tweets from the last 60 days from the flutrack API.
@@ -49,7 +44,6 @@ def populate_cities_from_text():
             row = row.split(sep=',')
             json_res = requests.get('https://maps.googleapis.com/maps/api/geocode/json',
                                     {'key': os.environ.get('GEOLOCATION_KEY'), 'address': row[0]}).json()
-            print(row[0])
             result.append({
                 'index': index,
                 'zone': row[2].strip('\n'),
@@ -76,6 +70,7 @@ def is_within_bounds(lat, lng, box):
             box['southwest']['lng']) < float(lng) < float(box['northeast']['lng'])
 
 
+# Adding airport codes of the relevant cities we are tracking
 def populate_airports_from_json():
     with open(airport_file) as data:
         result = json.load(data)
@@ -83,6 +78,7 @@ def populate_airports_from_json():
     return result
 
 
+# Adding the travel data to the transportation matrix
 def populate_transportation_matrix_from_csv(airport_data, data):
     matrix_size = db.cities.count()
     city_matrix = [[0] * matrix_size for x in range(matrix_size)]
@@ -124,11 +120,6 @@ def sort_per_origin(list_input):
             current_origin = [row['ORIGIN'], row['DEST'], int(float(row['PASSENGERS']))]
         else:
             current_origin[2] += int(float(row['PASSENGERS']))
-
-    for row in result:
-        if row[0] == 'LAX' or row[0] == 'LGA' or row[0] == 'JFK':
-            if row[1] == 'LAX' or row[1] == 'LGA' or row[1] == 'JFK':
-                print(row)
     result.pop(0)
     return result
 
@@ -156,33 +147,17 @@ def map_airports_to_cities(api_lookup):
     return res_dict
 
 
-# Reading the matrix from Rvachev & Longini's original paper.
-def create_dummy_matrix():
-    wkb = xlrd.open_workbook(dummy_matrix_file)
-    sheet = wkb.sheet_by_index(0)
-    _result = []
-
-    for row in range(1, sheet.nrows):
-        _row = []
-        for col in range(1, sheet.ncols):
-            _row.append(sheet.cell_value(row, col))
-        _result.append(_row)
-    matrix_document = []
-    for row in _result:
-        matrix_document.append({
-            'travel': row
-        })
-    db.transportation_matrix.insert(matrix_document)
-
-
 def populate_collections():
     db.tweets.drop()
     db.transportation_matrix.drop()
     db.airports.drop()
+    print("Adding tweets...")
     populate_tweets_from_flutrack_api()
+    print("Tweets successfully added!")
+    print("Adding travel data...")
     airp = populate_airports_from_json()
     populate_transportation_matrix_from_csv(map_airports_to_cities(airp), read_air_travel_data())
-    # create_dummy_matrix()
+    print("Travel data successfully added!")
 
 
 if mongo_uri:
@@ -191,7 +166,9 @@ if mongo_uri:
     tweets = db.tweets
     airports = db.airports
     db.cities.drop()
+    print("Adding cities...")
     populate_cities_from_text()
+    print("Citites successfully added to database!")
     cursor = cities.find()
     city_bounds = []
     city_list = []
@@ -208,3 +185,4 @@ else:
     airports = db.airports
 
 populate_collections()
+print("Done.")
