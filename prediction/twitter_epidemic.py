@@ -10,7 +10,7 @@ mongo_uri = os.environ.get('MONGOLAB_URI')
 
 week = 604800
 now = calendar.timegm(time.gmtime())
-epidemic_constant = 0.3
+epidemic_constant = 1.2
 
 if mongo_uri:
     client = MongoClient(mongo_uri)
@@ -36,6 +36,10 @@ weeks = [
     [0] * len(dcp.city_list),
 ]
 
+cities_epidemic = []
+
+
+
 city_names = []
 for city in dcp.city_list:
     city_names.append(city.name)
@@ -60,31 +64,30 @@ for doc in tweets.find():
         # else:
         #     weeks[3][city_names.index(doc['city'])] += 1
 
-for i in range(0, len(city_names)):
+
+def is_epidemic(city):
     last_mu = 0
     epidemic = True
-    # print(city_names[i])
     for u in range(0, 3):
-        if weeks[7 - u][i] != 0:
-            mu = (weeks[7 - (u + 1)][i] / weeks[7 - u][i]) ** (1 / 7)
+        if weeks[7 - u][city] != 0:
+            mu = (weeks[7 - (u + 1)][city] / weeks[7 - u][city]) ** (1 / 7)
             if mu < last_mu:
                 epidemic = False
             last_mu = mu
         else:
             epidemic = False
-            # if city_names[i] == 'Chicago':
-            #     print(last_mu)
-        # print(last_mu)
     if last_mu < epidemic_constant:
         epidemic = False
-    if epidemic:
-        print()
-        # print(" Mu: \t" + str(last_mu) + " City: " + city_names[i])
+    return epidemic
 
-    # print("Week1: " + str(weeks[0][i]) + " \tWeek2: " + str(weeks[1][i]) + "\tWeek 3: " +
-    #       str(weeks[2][i]) + " \tWeek4: " + str(weeks[3][i]) + "\tWeek 5: " + str(weeks[4][i]) +
-    #       " \tWeek6: " + str(weeks[5][i]) + "\tWeek 7: " + str(weeks[6][i]) + " \tWeek7: "
-    #       + str(weeks[7][i]) + " \tCity: " + str(city_names[i]))
+
+def is_increasing(city):
+    for i in range(0, 4):
+        if weeks[7-i][city] <= weeks[7-(i+1)][city]:
+            return False
+    print("Increasing: " + city)
+    return True
+
 
 db_cities = list(db.cities.find())
 
@@ -95,16 +98,29 @@ def lookup_coords(city):
             return db_city['location']
 
 
+# Ultimate quickfix. Shouldn't have to do this!
+def invert_weeks(in_weeks):
+    out_cities = []
+    for i in range(0, len(in_weeks[0])):
+        out_city_list = []
+        for in_week in in_weeks:
+            out_city_list.append(in_week[i])
+        out_cities.append(out_city_list)
+    return out_cities
+
+
 def get_tweets_per_week():
-    returned_tweets = []
-    for i in weeks:
-        current = []
-        index = 0
-        for j in i:
-            current.append({'location': lookup_coords(city_names[index]), 'tweets': j})
-            index += 1
-        returned_tweets.append(current)
-    return returned_tweets
+    returned_cities = []
+    inverted_weeks = invert_weeks(weeks)
+    city_index = 0
+    for i in inverted_weeks:
+        returned_cities.append(
+                {'location': lookup_coords(city_names[city_index]), 'weeks': i, 'city': city_names[city_index],
+                 'epidemic': is_epidemic(city_index), 'increasing': is_increasing(city_index)})
+        city_index += 1
+    print(returned_cities)
+    return returned_cities
+
 
 print(count)
 
