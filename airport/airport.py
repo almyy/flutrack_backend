@@ -125,6 +125,11 @@ def get_transportation_matrix():
     result_matrix = []
     for document in transportation_collection.find():
         result_matrix.append(document['travel'])
+    s = [[str(e) for e in row] for row in result_matrix]
+    lens = [max(map(len, col)) for col in zip(*s)]
+    fmt = '\t'.join('{{:{}}}'.format(x) for x in lens)
+    table = [fmt.format(*row) for row in s]
+    print('\n'.join(table))
     return result_matrix
 
 

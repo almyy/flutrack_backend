@@ -15,7 +15,7 @@ monthly_scaling_south_north = {-1: [0.10, 0.25, 0.55, 0.70, 0.85, 1.0, 1.0, 0.85
 city_list = []
 
 # dummy_population_file = os.path.abspath(os.path.dirname(__file__)) + '/data/dummypopulation.csv'
-grais_population_file = os.path.abspath(os.path.dirname(__file__)) + '/data/grais_population.csv'
+# grais_population_file = os.path.abspath(os.path.dirname(__file__)) + '/data/grais_population.csv'
 
 length_of_incubation_period = 2  # tau1
 length_of_infection_period = 8  # tau2

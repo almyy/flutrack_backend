@@ -43,7 +43,7 @@ def populate_tweets_from_json(data):
 # Populate the database with the cities we want to track.
 def populate_cities_from_text():
     result = []
-    with open(grais_city_file) as f:
+    with open(city_file) as f:
         index = 0
         for row in f:
             row = row.split(sep=',')
@@ -135,7 +135,7 @@ def sort_per_origin(list_input):
 
 # Initiate and sort the t100market database.
 def read_air_travel_data():
-    with open(t100market2000) as csv_file:
+    with open(t100market) as csv_file:
         reader = csv.DictReader(csv_file)
         origin_list = sort_per_origin(reader)
     return sorted(origin_list, key=lambda k: k[2])

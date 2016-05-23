@@ -29,7 +29,7 @@ def get_peak_day_results():
     sort_list = sorted(dcp.city_list, key=lambda l: (l.peak_day, l.name))
     return sort_list
 
-city_nr = 37
+city_nr = 15
 for attempt in range(0, 1):
     index_city = dcp.initiate_validation_results(city_nr)
     for t in range(0, forecast_horizon):
