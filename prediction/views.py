@@ -1,7 +1,7 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+
 from prediction import distribute_city_population
-from prediction import twitter_epidemic
 
 
 @api_view(['GET'])
