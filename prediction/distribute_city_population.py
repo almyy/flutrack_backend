@@ -14,8 +14,6 @@ monthly_scaling_south_north = {-1: [0.10, 0.25, 0.55, 0.70, 0.85, 1.0, 1.0, 0.85
                                1: [1.0, 0.85, 0.70, 0.55, 0.25, 0.10, 0.10, 0.25, 0.55, 0.70, 0.85, 1.0]}
 city_list = []
 
-# dummy_population_file = os.path.abspath(os.path.dirname(__file__)) + '/data/dummypopulation.csv'
-# grais_population_file = os.path.abspath(os.path.dirname(__file__)) + '/data/grais_population.csv'
 
 length_of_incubation_period = 2  # tau1
 length_of_infection_period = 8  # tau2
@@ -36,7 +34,6 @@ if mongo_uri:
     db = client.heroku_k99m6wnb
     cities = db.cities
 else:
-    # cities = 0
     print('Couldnt connect to DB')
 
 
@@ -47,14 +44,14 @@ def init_city_list():
                 city_list.append(City(doc['index'], doc['city'], doc['population'], doc['location'], int(doc['zone'])))
 
 
-def init_dummy_city_list():
-    if len(city_list) == 0:
-        with open(grais_population_file) as csvfile:
-            reader = csv.reader(csvfile)
-            index = 0
-            for row in reader:
-                city_list.append(City(index, row[0], float(row[1]), {}, int(row[2])))
-                index += 1
+# def init_dummy_city_list():
+#     if len(city_list) == 0:
+#         with open(grais_population_file) as csvfile:
+#             reader = csv.reader(csvfile)
+#             index = 0
+#             for row in reader:
+#                 city_list.append(City(index, row[0], float(row[1]), {}, int(row[2])))
+#                 index += 1
 
 
 # return f(time) (2)
@@ -210,7 +207,6 @@ class City:
 
 def initiate_validation_results(index_city):
     clear_results()
-    # init_dummy_city_list()
     init_city_list()
     City.index_city_id = index_city
     first_travel_day = 0

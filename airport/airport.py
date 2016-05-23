@@ -1,14 +1,9 @@
-import csv
-import requests
 import json
 import os
 
-import xlrd
-from pymongo import MongoClient
+import requests
 from bson.json_util import dumps, loads
-
-t100market = os.path.abspath(os.path.dirname(__file__)) + '/data/t100market.csv'
-# t100market2000 = os.path.abspath(os.path.dirname(__file__)) + '/data/t100market2000.csv'
+from pymongo import MongoClient
 
 mongo_uri = os.environ.get('MONGOLAB_URI')
 
@@ -48,38 +43,4 @@ def get_transportation_matrix():
     result_matrix = []
     for document in transportation_collection.find():
         result_matrix.append(document['travel'])
-    s = [[str(e) for e in row] for row in result_matrix]
-    lens = [max(map(len, col)) for col in zip(*s)]
-    fmt = '\t'.join('{{:{}}}'.format(x) for x in lens)
-    table = [fmt.format(*row) for row in s]
-    print('\n'.join(table))
     return result_matrix
-
-
-# Reading the matrix from Rvachev & Longini's original paper.
-# def create_dummy_matrix():
-#     wkb = xlrd.open_workbook(dummy_matrix_file)
-#     sheet = wkb.sheet_by_index(0)
-#     _result = []
-#
-#     for row in range(1, sheet.nrows):
-#         _row = []
-#         for col in range(1, sheet.ncols):
-#             _row.append(sheet.cell_value(row, col))
-#         _result.append(_row)
-#     return _result
-#
-#
-# Reading the matrix from Grais et al's paper.
-# def create_grais_matrix():
-#     wkb = xlrd.open_workbook(grais_matrix_file)
-#     sheet = wkb.sheet_by_index(0)
-#     _result = []
-#
-#     for row in range(1, sheet.nrows):
-#         _row = []
-#         for col in range(1, sheet.ncols):
-#             _row.append(sheet.cell_value(row, col))
-#         _result.append(_row)
-#     return _result
-
