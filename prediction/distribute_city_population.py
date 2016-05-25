@@ -1,4 +1,5 @@
 import csv
+import datetime
 import os
 
 from pymongo import MongoClient
@@ -21,7 +22,9 @@ fraction_of_susceptible_population = 0.641  # alpha
 fraction_of_newly_ill_reported = 0.3  # beta
 
 forecast_horizon = 440  # T
-forecast_beginning = 164  # 12. juni
+# forecast_beginning = 164  # 12. juni
+forecast_beginning = datetime.date.today().timetuple().tm_yday
+print(forecast_beginning)
 periodic_swing_T1 = 275  # 1. October
 periodic_swing_T2 = 92  # 1. April
 
