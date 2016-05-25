@@ -2,9 +2,9 @@ import csv
 import os
 
 from pymongo import MongoClient
-from airport import airport
+from airport import manage_air_traffic
 
-city_matrix = airport.get_transportation_matrix()
+city_matrix = manage_air_traffic.get_transportation_matrix()
 
 infection_distribution = [[1, 0.7, 0.2, 0, 0, 0, 0, 0, 0, 0],
                           [0, 0.3, 0.77, 0.82, 0.54, 0.3, 0.15, 0.06, 0.01, 0],
