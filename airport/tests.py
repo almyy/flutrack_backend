@@ -1,6 +1,6 @@
+import os
 import unittest
 import manage_air_traffic as apm
-
 
 class AirportTestCase(unittest.TestCase):
     def setUp(self):
@@ -12,14 +12,12 @@ class AirportTestCase(unittest.TestCase):
         self.passengers_lga_lax = 4380
         self.passengers_lax_lga = 3222
 
-    def test_size_of_city_list(self):
+    def test_size_of_city_list_and_matrix(self):
         size = len(self.city_names)
-        self.assertEqual(size, 52, "Wrong size of city list")
-
-    def test_size_of_matrix(self):
         row_size = len(self.travel_matrix)
         col_size = len(self.travel_matrix[0])
-        self.assertEqual(row_size * col_size, 52 * 52, "Wrong matrix size")
+        self.assertEqual(size, row_size, "Wrong size of city list")
+        self.assertEqual(row_size, col_size, "Matrix not symmetrical")
 
     def test_travel_matrix_calculates_correctly(self):
         la_index = self.city_names.index('Los Angeles')
