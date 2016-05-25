@@ -18,6 +18,7 @@ if mongo_uri:
     db = client.heroku_k99m6wnb
     tweets = db.tweets
     test_tweets = db.test_tweets2012
+    db_cities = list(db.cities.find())
 else:
     tweets = 0
     test_tweets = 0
@@ -55,15 +56,6 @@ for doc in tweets.find():
                 break
         weeks[c_week][city_names.index(doc['city'])] += 1
 
-        # if int(doc['date']) < now - (week * 3):
-        #     weeks[0][city_names.index(doc['city'])] += 1
-        # elif int(doc['date']) < (now - (week * 2)):
-        #     weeks[1][city_names.index(doc['city'])] += 1
-        # elif int(doc['date']) < now - (week * 1):
-        #     weeks[2][city_names.index(doc['city'])] += 1
-        # else:
-        #     weeks[3][city_names.index(doc['city'])] += 1
-
 
 def is_epidemic(city):
     last_mu = 0
@@ -89,9 +81,6 @@ def is_increasing(city):
             return False
     # print("Increasing: " + city)
     return True
-
-
-db_cities = list(db.cities.find())
 
 
 def lookup_coords(city):
