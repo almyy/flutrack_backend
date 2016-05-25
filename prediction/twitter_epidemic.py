@@ -82,10 +82,12 @@ def is_epidemic(city):
 
 
 def is_increasing(city):
-    for i in range(0, 4):
-        if weeks[7-i][city] <= weeks[7-(i+1)][city]:
+    for i in range(0, 2):
+        if weeks[7-i][city] < weeks[7-(i+1)][city]:
             return False
-    print("Increasing: " + city)
+        if weeks[7-(i+1)][city] == 0:
+            return False
+    # print("Increasing: " + city)
     return True
 
 
