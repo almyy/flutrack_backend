@@ -64,4 +64,4 @@ python manage.py runserver
 
 This hosts the API locally on localhost:8000, and can be browsed using e.g. [Postman](https://www.getpostman.com/). When running locally, the API also serves a browsable version through browsers, so you can visit the API in any browser.
 
-Example request: GET localhost:8000/prediction (Note that this may take a while)
+Example request: GET localhost:8000/prediction
