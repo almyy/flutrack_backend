@@ -30,7 +30,7 @@ def get_peak_day_results():
     return sort_list
 
 
-city_nr = 15
+city_nr = 14
 for attempt in range(0, 1):
     index_city = dcp.initiate_validation_results(city_nr)
     for t in range(0, forecast_horizon):
@@ -46,4 +46,3 @@ for attempt in range(0, 1):
     table = [fmt.format(*row) for row in s]
     print('\n'.join(table))
     print(str(dcp.city_list[city_nr]))
-

@@ -28,11 +28,12 @@ def populate_tweets_from_json(data):
         lat = tweet['latitude']
         lng = tweet['longitude']
         city = lookup_city_name(lat, lng)
-        result.append({
-            'text': tweet['tweet_text'],
-            'city': city,
-            'date': tweet['tweet_date']
-        })
+        if city != 'Unknown city':
+            result.append({
+                'text': tweet['tweet_text'],
+                'city': city,
+                'date': tweet['tweet_date']
+            })
     tweets.insert(result)
 
 

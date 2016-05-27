@@ -7,7 +7,7 @@ class DistributionTestCase(unittest.TestCase):
     def setUp(self):
         self.tau1 = dcp.length_of_incubation_period
         self.tau2 = dcp.length_of_infection_period
-        self.llambda = dcp.daily_infectious_contact_rate
+        self.llambda = dcp.daily_infectious_cr
         self.alpha = dcp.fraction_of_susceptible_population
         self.beta = dcp.fraction_of_newly_ill_reported
 
