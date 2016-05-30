@@ -5,12 +5,13 @@ import time
 from pymongo import MongoClient
 
 from prediction import distribute_city_population as dcp
+from flutrack_backend import populateDB
 
 mongo_uri = os.environ.get('MONGOLAB_URI')
 
 week = 604800
 now = calendar.timegm(time.gmtime())
-epidemic_constant = 1.2
+epidemic_constant = 0.9
 
 if mongo_uri:
     client = MongoClient(mongo_uri)
@@ -57,6 +58,52 @@ for doc in tweets.find():
         weeks[c_week][city_names.index(doc['city'])] += 1
 
 
+def update_db():
+    dcp.initiate_validation_results(0)
+    weeks = [
+        [0] * len(dcp.city_list),
+        [0] * len(dcp.city_list),
+        [0] * len(dcp.city_list),
+        [0] * len(dcp.city_list),
+        [0] * len(dcp.city_list),
+        [0] * len(dcp.city_list),
+        [0] * len(dcp.city_list),
+        [0] * len(dcp.city_list),
+    ]
+    cities_epidemic = []
+    populateDB.populate_tweets_from_flutrack_api()
+    city_names = []
+    for city in dcp.city_list:
+        city_names.append(city.name)
+
+    count = 0
+    for doc in tweets.find():
+        if doc['city'] in city_names:
+            count += 1
+            c_week = -1
+            for i in range(0, 8):
+                if int(doc['date']) < (now - (week * (7 - i))):
+                    c_week = 7 - i
+                    break
+            weeks[c_week][city_names.index(doc['city'])] += 1
+
+
+city_names = []
+for city in dcp.city_list:
+    city_names.append(city.name)
+
+count = 0
+for doc in tweets.find():
+    if doc['city'] in city_names:
+        count += 1
+        c_week = -1
+        for i in range(0, 8):
+            if int(doc['date']) < (now - (week * (7 - i))):
+                c_week = 7 - i
+                break
+        weeks[c_week][city_names.index(doc['city'])] += 1
+
+
 def is_epidemic(city):
     last_mu = 0
     epidemic = True
@@ -79,7 +126,6 @@ def is_increasing(city):
             return False
         if weeks[7-(i+1)][city] == 0:
             return False
-    # print("Increasing: " + city)
     return True
 
 
@@ -104,15 +150,12 @@ def get_tweets_per_week():
     returned_cities = []
     inverted_weeks = invert_weeks(weeks)
     city_index = 0
+
     for i in inverted_weeks:
+        # if is_epidemic(city_index):
+        #     dcp.update_forecast(city_index)
         returned_cities.append(
                 {'location': lookup_coords(city_names[city_index]), 'weeks': i, 'city': city_names[city_index],
                  'epidemic': is_epidemic(city_index), 'increasing': is_increasing(city_index)})
         city_index += 1
-    print(returned_cities)
     return returned_cities
-
-
-print(count)
-
-# dt = datetime.fromordinal(1461606148)

@@ -27,7 +27,7 @@ root = lambda * x: os.path.join(os.path.abspath(PROJECT_ROOT), *x)
 SECRET_KEY = os.environ.get('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_SECURE = True
 

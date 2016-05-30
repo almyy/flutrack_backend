@@ -1,10 +1,11 @@
-import csv
-
-from pymongo import MongoClient
-import requests
-import os
 import json
-from airport import manage_air_traffic
+import os
+from datetime import date
+
+import requests
+from pymongo import MongoClient
+
+from travel import manage_air_traffic
 
 geo_api_key = os.environ.get('GEOLOCATION_KEY')
 mongo_uri = os.environ.get('MONGOLAB_URI')
@@ -24,15 +25,19 @@ def populate_tweets_from_flutrack_api():
 # Check if the the tweets from flutrack have a location in one of the cities we are tracking.
 def populate_tweets_from_json(data):
     result = []
+    city_bounds = []
+    for x in db.cities.find():
+        city_bounds.append({'box': x['bounding_box'], 'city': x['city']})
     for tweet in data:
         lat = tweet['latitude']
         lng = tweet['longitude']
-        city = lookup_city_name(lat, lng)
-        result.append({
-            'text': tweet['tweet_text'],
-            'city': city,
-            'date': tweet['tweet_date']
-        })
+        city = lookup_city_name(lat, lng, city_bounds)
+        if city:
+            result.append({
+                'text': tweet['tweet_text'],
+                'city': city,
+                'date': tweet['tweet_date']
+            })
     tweets.insert(result)
 
 
@@ -42,12 +47,11 @@ def populate_cities_from_text():
     cities.insert(result)
 
 
-def lookup_city_name(lat, lng):
+def lookup_city_name(lat, lng, city_bounds):
     for row in city_bounds:
         if is_within_bounds(lat, lng, row['box']):
             return row['city']
-    cursor.rewind()
-    return "Unknown city"
+    return None
 
 
 def is_within_bounds(lat, lng, box):
@@ -63,6 +67,16 @@ def populate_transportation_matrix_from_csv(airport_data, data):
 
 
 def populate_collections():
+    db.cities.drop()
+    print("Adding cities...")
+    populate_cities_from_text()
+    print("Cities successfully added to database!")
+    cursor = cities.find()
+    city_list = []
+    res_dict = {}
+    for document in cursor:
+        city_list.append(document['city'])
+        res_dict[document['city']] = []
     db.tweets.drop()
     db.transportation_matrix.drop()
     db.airports.drop()
@@ -77,31 +91,10 @@ def populate_collections():
     populate_transportation_matrix_from_csv(airport_dictionary, manage_air_traffic.read_air_travel_data(t100market))
     print("Travel data successfully added!")
 
-
-if mongo_uri:
-    db = MongoClient(mongo_uri).heroku_k99m6wnb
+db = MongoClient(mongo_uri).heroku_k99m6wnb
+if __name__ == '__main__':
     cities = db.cities
     tweets = db.tweets
     airports = db.airports
-    city_count = db.cities.count()
-    db.cities.drop()
-    print("Adding cities...")
-    populate_cities_from_text()
-    print("Citites successfully added to database!")
-    cursor = cities.find()
-    city_bounds = []
-    city_list = []
-    res_dict = {}
-    for document in cursor:
-        city_bounds.append({'box': document['bounding_box'], 'city': document['city']})
-        city_list.append(document['city'])
-        res_dict[document['city']] = []
-else:
-    client = MongoClient('mongodb://localhost:27017/')
-    db = client.flutrack
-    cities = db.cities
-    tweets = db.tweets
-    airports = db.airports
-
-populate_collections()
-print("Done.")
+    populate_collections()
+    print("Done.")

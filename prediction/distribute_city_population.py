@@ -1,8 +1,8 @@
-import csv
 import os
 
 from pymongo import MongoClient
-from airport import manage_air_traffic
+
+from travel import manage_air_traffic
 
 city_matrix = manage_air_traffic.get_transportation_matrix()
 
@@ -216,29 +216,27 @@ def initiate_validation_results(index_city):
     return city_list[City.index_city_id]
 
 
-def forecast(update_forecast):
-    index_city = 15
+def update_forecast(index_city):
+    initiate_validation_results(index_city)
     forecast_obj = []
-    if not update_forecast:
-        return db.forecast.find_one()['forecast_object']
-    else:
-        initiate_validation_results(index_city)
-        for t in range(0, forecast_horizon):
-            calculate_state_equations(t)
-            data = []
-            for city in city_list:
-                morbidity = int(city.daily_morbidity[t] / (city.population / 100000))
-                data.append({
-                    'city': city.name,
-                    'morbidity': morbidity,
-                    'location': city.location
-                })
-                if city.name == 'Stavanger':
-                    print(morbidity)
-            forecast_obj.append(data)
-        db.forecast.drop()
-        db.forecast.insert({'forecast_object': forecast_obj})
-    return forecast_obj
+    for t in range(0, forecast_horizon):
+        calculate_state_equations(t)
+        data = []
+        for city in city_list:
+            morbidity = int(city.daily_morbidity[t] / (city.population / 100000))
+            data.append({
+                'city': city.name,
+                'morbidity': morbidity,
+                'location': city.location
+            })
+        forecast_obj.append(data)
+    db.forecast.drop()
+    db.forecast.insert({'forecast_object': forecast_obj})
 
 
-# forecast(True)
+def forecast():
+    return db.forecast.find_one()['forecast_object']
+
+
+if __name__ == '__main__':
+    update_forecast(9)
