@@ -1,7 +1,8 @@
+import csv
+import datetime
 import os
 
 from pymongo import MongoClient
-
 from travel import manage_air_traffic
 
 city_matrix = manage_air_traffic.get_transportation_matrix()
@@ -16,12 +17,12 @@ city_list = []
 
 length_of_incubation_period = 2  # tau1
 length_of_infection_period = 8  # tau2
-daily_infectious_contact_rate = 1.055  # lambda
+daily_infectious_cr = 1.055  # lambda
 fraction_of_susceptible_population = 0.641  # alpha
 fraction_of_newly_ill_reported = 0.3  # beta
 
 forecast_horizon = 440  # T
-forecast_beginning = 164  # 12. juni
+forecast_beginning = datetime.date.today().timetuple().tm_yday
 periodic_swing_T1 = 275  # 1. October
 periodic_swing_T2 = 92  # 1. April
 
@@ -134,8 +135,7 @@ def calculate_state_equations(t):
         tmp_sum_lat = 0
         for tau in range(1, length_of_infection_period + 1):
             tmp_sum_lat += city.apply_omega_latent(0, t - tau) * get_infectious_g(tau)
-        city.lat_res[0, t] = seasonality * daily_infectious_contact_rate * (
-        city.sus_res[t] / city.population) * tmp_sum_lat
+        city.lat_res[0, t] = seasonality * daily_infectious_cr * (city.sus_res[t] / city.population) * tmp_sum_lat
         city.inf_res[0, t] = 0
 
         city.sus_res[t + 1] = city.apply_omega_susceptible(t) - city.lat_res[0, t]
@@ -143,8 +143,7 @@ def calculate_state_equations(t):
         for tau in range(1, length_of_incubation_period + 1):
             res = city.apply_omega_latent(tau, t)
             city.lat_res[tau, t + 1] = (1 - latent_becomes_infectious(tau)) * res
-            city.inf_res[tau, t + 1] = latent_becomes_infectious(tau) * res + (
-            (1 - infectious_recovers(tau)) * city.inf_res[tau, t])
+            city.inf_res[tau, t + 1] = latent_becomes_infectious(tau) * res + ((1 - infectious_recovers(tau)) * city.inf_res[tau, t])
 
         for tau in range(length_of_incubation_period + 1, length_of_infection_period + 1):
             city.inf_res[tau, t + 1] = ((1 - infectious_recovers(tau)) * city.inf_res[tau, t])
@@ -216,8 +215,8 @@ def initiate_validation_results(index_city):
     return city_list[City.index_city_id]
 
 
-def update_forecast(index_city):
-    initiate_validation_results(index_city)
+def update_forecast(index, is_dummy):
+    initiate_validation_results(index)
     forecast_obj = []
     for t in range(0, forecast_horizon):
         calculate_state_equations(t)
@@ -231,12 +230,9 @@ def update_forecast(index_city):
             })
         forecast_obj.append(data)
     db.forecast.drop()
-    db.forecast.insert({'forecast_object': forecast_obj})
+    db.forecast.insert({'forecast_object': forecast_obj, 'is_dummy': is_dummy})
 
 
 def forecast():
-    return db.forecast.find_one()['forecast_object']
-
-
-if __name__ == '__main__':
-    update_forecast(9)
+    obj = db.forecast.find_one()
+    return {'forecast': obj['forecast_object'], 'is_dummy': obj['is_dummy']}

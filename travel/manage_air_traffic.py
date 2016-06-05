@@ -48,7 +48,7 @@ def read_cities_from_file(city_file, geo_api_key):
                 'population': row[1].strip('\n')
             })
             index += 1
-        return result
+    return result
 
 
 # Sort data from airport.api.aero on origin and destination airports.
@@ -94,6 +94,7 @@ def calculate_travel_matrix(airport_data, data, matrix_size):
             destination_index = get_city_index(row[1], airport_data)
             city_matrix[origin_index][destination_index] += row[2]
             city_matrix[destination_index][origin_index] += row[2]
+
 
     for i in range(0, 52):
         for u in range(0, 52):
