@@ -36,7 +36,7 @@ def read_cities_from_file(city_file, geo_api_key):
     with open(city_file) as f:
         index = 0
         for row in f:
-            row = row.split(sep=',')
+            row = row.split(',')
             json_res = requests.get('https://maps.googleapis.com/maps/api/geocode/json',
                                     {'key': geo_api_key, 'address': row[0]}).json()
             result.append({
