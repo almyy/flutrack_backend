@@ -112,7 +112,8 @@ def get_tweets_per_week():
     inverted_weeks = invert_weeks(weeks)
     city_index = 0
     epidemic_city = update_forecast()
-    print(inverted_weeks)
+    for city in inverted_weeks:
+        print(city)
     for i in inverted_weeks:
         if epidemic_city >= 0:
             if epidemic_city == city_index:
