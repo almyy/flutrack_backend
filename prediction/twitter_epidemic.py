@@ -101,7 +101,6 @@ def invert_weeks(in_weeks):
 
 def update_forecast():
     for index in range(0, len(invert_weeks(weeks))):
-        print(str(is_epidemic(index)) + ", " + str(index))
         if is_epidemic(index):
             return index
     return -1

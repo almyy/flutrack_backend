@@ -46,7 +46,7 @@ def populate_cities_from_text():
 
 
 def lookup_city_name(lat, lng):
-    for row in city_bounds:
+    for row in city_bo  unds:
         if is_within_bounds(lat, lng, row['box']):
             return row['city']
     cursor.rewind()

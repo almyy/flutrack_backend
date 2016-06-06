@@ -46,6 +46,9 @@ pip install django djangorestframework tweepy requests pymongo xlrd
 
 Django and Django Rest Framework are used to setup the API, Tweepy is used for utilizing the Twitter API, Requests makes it easier to make HTTP requests, Pymongo is used to communicate with our MongoDB instance, and xlrd is used to read .xls-files.
 
+## API keys
+The system is dependent on external geocoding, and it is therefore necessary for you to get an API key for the Google Geocoding API. This can be obtained [here](https://console.cloud.google.com/apis/api/geocoding_backend/overview). The key must be added as an environmental variable named 'GEOLOCATION_KEY'.
+
 ## Running the API
 Now that you have everything installed, you should be able to run a local instance of the API. First you need to populate the database, so that it has some data to base the prediction on. We first run the setup.py script, which sets some necessary environment variables. If you ever want to deploy the API to a production server, the SECRET_KEY variable should be changed and hidden. In the project root folder, run the following command:
 
@@ -59,7 +62,7 @@ Then we can run populateDB.py:
 python flutrack_backend/populateDB.py
 ```
 
-This step may take a while.
+This step may take a while. If you get import errors, you might have to add the project folder to the PYTHONPATH environment variable manually.
 This will populate the database with the required cities, airports, as well as some updated tweets from the Flutrack API.
 
 When the database is populated and the secret key is set, the API is ready to be run. You can run the following command to start the API locally:
