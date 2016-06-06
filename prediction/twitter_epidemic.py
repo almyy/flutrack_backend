@@ -63,7 +63,7 @@ def is_epidemic(city):
     epidemic = True
     for u in range(0, 3):
         if weeks[7 - u][city] != 0:
-            mu = (weeks[7 - (u + 1)][city] / weeks[7 - u][city]) ** (1 / 7)
+            mu = (float(weeks[7 - (u + 1)][city]) / float(weeks[7 - u][city])) ** float((1 / float(7)))
             if mu < last_mu or mu < epidemic_constant:
                 epidemic = False
             last_mu = mu
