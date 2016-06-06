@@ -111,14 +111,13 @@ def get_tweets_per_week():
     returned_cities = []
     inverted_weeks = invert_weeks(weeks)
     city_index = 0
-    probable_epidemic = -1
+    epidemic_city = update_forecast()
     for i in inverted_weeks:
-        if probable_epidemic < 0:
-            if is_epidemic(city_index):
+        if epidemic_city >= 0:
+            if epidemic_city == city_index:
                 returned_cities.append(
                         {'location': lookup_coords(city_names[city_index]), 'weeks': i, 'city': city_names[city_index],
                          'epidemic': True, 'increasing': is_increasing(city_index)})
-                probable_epidemic = city_index
             else:
                 returned_cities.append(
                         {'location': lookup_coords(city_names[city_index]), 'weeks': i, 'city': city_names[city_index],
