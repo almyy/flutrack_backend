@@ -12,7 +12,7 @@ The API is hosted at flutrack-backend.herokuapp.com, and has two publicly availa
 
 |Endpoint       |Description|
 |---------------|-----------|
-|GET /tweets    |Returns every influenza related tweet. The tweets are directly piped from [Flutrack.org](http://www.flutrack.org)|
+|GET /tweets    |Returns the weekly influenza related tweet count used by our system.|
 |GET /prediction|Returns a list of an entire pandemic forecast, where each element represents one day in the forecast. Each day is represented as a list of all the cities included in the forecast with their respective morbidity and location.|
 
 ## Front-end
@@ -47,14 +47,20 @@ pip install django djangorestframework tweepy requests pymongo xlrd
 Django and Django Rest Framework are used to setup the API, Tweepy is used for utilizing the Twitter API, Requests makes it easier to make HTTP requests, Pymongo is used to communicate with our MongoDB instance, and xlrd is used to read .xls-files.
 
 ## Running the API
-Now that you have everything installed, you should be able to run a local instance of the API. First you need to populate the database with data, so that it has some data to calculate. This can be done by running the setup.py script. In the project root folder, run the following command:
+Now that you have everything installed, you should be able to run a local instance of the API. First you need to populate the database, so that it has some data to base the prediction on. We first run the setup.py script, which sets some necessary environment variables. If you ever want to deploy the API to a production server, the SECRET_KEY variable should be changed and hidden. In the project root folder, run the following command:
 
 ```
 python setup.py
 ```
 
+Then we can run populateDB.py:
+
+```
+python flutrack_backend/populateDB.py
+```
+
 This step may take a while.
-This will populate the database with the required cities, as well as some updated tweets from the Flutrack API. The script also sets an environment variable called SECRET_KEY, which Django uses for key generation. If you ever want to deploy the API to a production server, this key should be changed and hidden.
+This will populate the database with the required cities, airports, as well as some updated tweets from the Flutrack API.
 
 When the database is populated and the secret key is set, the API is ready to be run. You can run the following command to start the API locally:
 
