@@ -81,8 +81,10 @@ def populate_collections():
     print("Travel data successfully added!")
     epidemic_city = twitter_epidemic.update_forecast()
     if epidemic_city >= 0:
+        print("Updating real forecast on city " + str(epidemic_city))
         dcp.update_forecast(epidemic_city, False)
     else:
+        print("Updating dummy forecast on city 15")
         dcp.update_forecast(15, True)
 
 if mongo_uri:

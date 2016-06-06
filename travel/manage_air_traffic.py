@@ -36,7 +36,7 @@ def read_cities_from_file(city_file, geo_api_key):
     with open(city_file) as f:
         index = 0
         for row in f:
-            row = row.split(',')
+            row = row.split(sep=',')
             json_res = requests.get('https://maps.googleapis.com/maps/api/geocode/json',
                                     {'key': geo_api_key, 'address': row[0]}).json()
             result.append({
@@ -94,7 +94,6 @@ def calculate_travel_matrix(airport_data, data, matrix_size):
             destination_index = get_city_index(row[1], airport_data)
             city_matrix[origin_index][destination_index] += row[2]
             city_matrix[destination_index][origin_index] += row[2]
-
 
     for i in range(0, 52):
         for u in range(0, 52):

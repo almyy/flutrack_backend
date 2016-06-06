@@ -4,43 +4,36 @@ import time
 
 from pymongo import MongoClient
 
-from prediction import distribute_city_population as dcp
-
 mongo_uri = os.environ.get('MONGOLAB_URI')
 
 week = 604800
 now = calendar.timegm(time.gmtime())
 epidemic_constant = 0.9
 
-if mongo_uri:
-    client = MongoClient(mongo_uri)
-    print('Connected to MongoDB')
-    db = client.heroku_k99m6wnb
-    tweets = db.tweets
-    test_tweets = db.test_tweets2012
-    db_cities = list(db.cities.find())
-else:
-    tweets = 0
-    test_tweets = 0
-    print('Couldnt connect to DB')
 
-dcp.initiate_validation_results(0)
+client = MongoClient(mongo_uri)
+print('Connected to MongoDB')
+db = client.heroku_k99m6wnb
+tweets = db.tweets
+test_tweets = db.test_tweets2012
+db_cities = list(db.cities.find())
 
+city_length = len(db_cities)
 weeks = [
-    [0] * len(dcp.city_list),
-    [0] * len(dcp.city_list),
-    [0] * len(dcp.city_list),
-    [0] * len(dcp.city_list),
-    [0] * len(dcp.city_list),
-    [0] * len(dcp.city_list),
-    [0] * len(dcp.city_list),
-    [0] * len(dcp.city_list),
+    [0] * city_length,
+    [0] * city_length,
+    [0] * city_length,
+    [0] * city_length,
+    [0] * city_length,
+    [0] * city_length,
+    [0] * city_length,
+    [0] * city_length,
 ]
 
 cities_epidemic = []
 city_names = []
-for city in dcp.city_list:
-    city_names.append(city.name)
+for city in db_cities:
+    city_names.append(city['city'])
 
 count = 0
 for doc in tweets.find():
@@ -52,11 +45,6 @@ for doc in tweets.find():
                 c_week = 7 - i
                 break
         weeks[c_week][city_names.index(doc['city'])] += 1
-
-
-city_names = []
-for city in dcp.city_list:
-    city_names.append(city.name)
 
 count = 0
 for doc in tweets.find():
@@ -113,6 +101,7 @@ def invert_weeks(in_weeks):
 
 def update_forecast():
     for index in range(0, len(invert_weeks(weeks))):
+        print(str(is_epidemic(index)) + ", " + str(index))
         if is_epidemic(index):
             return index
     return -1
@@ -121,7 +110,6 @@ def update_forecast():
 def get_tweets_per_week():
     returned_cities = []
     inverted_weeks = invert_weeks(weeks)
-    print(inverted_weeks)
     city_index = 0
     probable_epidemic = -1
     for i in inverted_weeks:

@@ -1,8 +1,8 @@
-import csv
 import datetime
 import os
 
 from pymongo import MongoClient
+
 from travel import manage_air_traffic
 
 city_matrix = manage_air_traffic.get_transportation_matrix()
